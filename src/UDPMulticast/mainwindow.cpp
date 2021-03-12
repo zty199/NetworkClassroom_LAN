@@ -260,7 +260,7 @@ void MainWindow::on_videoFrameChanged(QVideoFrame frame)
 #elif defined Q_OS_LINUX
     image = image.mirrored(false, false);   // 左右/上下镜像
 #endif
-    image.scaled(image.size().boundedTo(QSize(1280, 720)), Qt::KeepAspectRatio, Qt::SmoothTransformation); // 分辨率高于 1080p 则压缩
+    image.scaled(image.size().boundedTo(QSize(1280, 720)), Qt::KeepAspectRatio, Qt::SmoothTransformation); // 分辨率高于 720p 则压缩
 
     // 本地窗口预览
     ui->videoViewer->setPixmap(QPixmap::fromImage(image).scaled(ui->videoViewer->size(), Qt::KeepAspectRatio, Qt::FastTransformation));
@@ -295,9 +295,10 @@ void MainWindow::on_videoFrameChanged(QVideoFrame frame)
             len = UDP_MAX_SIZE;
         }
 
-        if((res = video_socket->writeDatagram(byteArray.data() + sentBytes, len, groupAddress, video_port)) != len)
+        res = video_socket->writeDatagram(byteArray.data() + sentBytes, len, groupAddress, video_port);
+        if(res < 0)
         {
-            qDebug() << "res = " << res << " sentBytes = " << len;
+            qDebug() << "video_socket: Write Datagram Failed!";
             break;
         }
         video_socket->waitForBytesWritten();
@@ -373,9 +374,10 @@ void MainWindow::on_timeOut()
             len = UDP_MAX_SIZE;
         }
 
-        if((res = video_socket->writeDatagram(byteArray.data() + sentBytes, len, groupAddress, video_port)) != len)
+        res = video_socket->writeDatagram(byteArray.data() + sentBytes, len, groupAddress, video_port);
+        if(res < 0)
         {
-            qDebug() << "res = " << res << " sentBytes = " << len;
+            qDebug() << "video_socket: Write Datagram Failed!";
             break;
         }
         video_socket->waitForBytesWritten();
@@ -459,9 +461,10 @@ void MainWindow::on_deviceReadyRead()
             len = UDP_MAX_SIZE;
         }
 
-        if((res = audio_socket->writeDatagram(reinterpret_cast<const char *>(&vp) + sentBytes, len, groupAddress, audio_port)) != len)
+        res = audio_socket->writeDatagram(reinterpret_cast<const char *>(&vp) + sentBytes, len, groupAddress, audio_port);
+        if(res < 0)
         {
-            qDebug() << "res = " << res << " sentBytes = " << len;
+            qDebug() << "audio_socket: Write Datagram Failed!";
             break;
         }
         audio_socket->waitForBytesWritten();

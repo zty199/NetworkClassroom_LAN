@@ -93,6 +93,11 @@ void MainWindow::on_videoReadyRead()
     QByteArray byteArray;
     byteArray.resize(static_cast<int>(video_socket->pendingDatagramSize()));
     res = video_socket->readDatagram(byteArray.data(), video_socket->pendingDatagramSize());
+    if(res < 0)
+    {
+        qDebug() << "video_socket: Read Datagram Failed!";
+        return;
+    }
 
     // 接收到停止信号则清空画面
     if(QString(byteArray) == "Stop")
@@ -171,7 +176,11 @@ void MainWindow::on_cb_device_currentIndexChanged(int index)
         format = info.nearestFormat(this->format);
     }
 
-    delete m_audioOutput;
+    /*
+     * 删除旧音频输出设备并新建设备，
+     * 在 Linux 上会引起程序异常结束，原因未知
+     */
+    // delete m_audioOutput;
     m_audioOutput = new QAudioOutput(info, format, this);
 
     if(flag_audio)
@@ -199,6 +208,11 @@ void MainWindow::on_audioReadyRead()
     QByteArray byteArray;
     byteArray.resize(static_cast<int>(audio_socket->pendingDatagramSize()));
     res = audio_socket->readDatagram(byteArray.data(), audio_socket->pendingDatagramSize());
+    if(res < 0)
+    {
+        qDebug() << "audio_socket: Read Datagram Failed!";
+        return;
+    }
 
     // 接收到开始信号则清空上个数据包并准备写入新的数据包
     if(QString(byteArray) == "Begin")
