@@ -7,7 +7,11 @@
 #include <QAudio>
 #include <QAudioOutput>
 
-#define UDP_MAX_SIZE 1472  // UDP 数据包建议长度   * MTU = 1500，1500 - 20（IP头）- 8（UDP头）
+#define UDP_MAX_SIZE    1472    // UDP 数据包最大长度   * MTU = 1500，故数据包大小 1500 - 20（IP头）- 8（UDP头）
+
+#define SAMPLE_RATE     44100   // 采样频率
+#define SAMPLE_SIZE     16      // 采样位数
+#define CHANNEL_COUNT   2       // 声道数
 
 namespace Ui {
 class MainWindow;
@@ -28,6 +32,7 @@ private:
     QAudioOutput *m_audioOutput;
     QIODevice *m_audioDevice;
     QAudioFormat format;
+    bool flag_audio;
 
     QUdpSocket *video_socket;
     QUdpSocket *audio_socket;
@@ -37,9 +42,9 @@ private:
 
     struct videoPack
     {
-        char data[1024];
+        char data[1024 * 16];
         int lens;
-    };
+    } vp;
 
     void initUdpConnections();
     void initOutputDevice();
@@ -48,8 +53,13 @@ private:
 
 private slots:
     void on_videoReadyRead();
+    void on_btn_audio_clicked();
     void on_cb_device_currentIndexChanged(int index);
     void on_audioReadyRead();
+    void on_deviceReadyWrite();
+
+signals:
+    void readyWrite();
 
 };
 

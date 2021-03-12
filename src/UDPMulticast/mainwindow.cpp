@@ -10,7 +10,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     availableCameras(QCameraInfo::availableCameras()),
-    // m_camera(new QCamera(QCameraInfo::defaultCamera(), this)),
+    m_camera(new QCamera(QCameraInfo::defaultCamera(), this)),
     m_viewFinder(new VideoSurface(this)),
     flag_camera(false),
     m_screen(QApplication::primaryScreen()),
@@ -29,13 +29,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // 初始化 UDP 连接
     initUdpConnections();
 
-    /*
-     * 正常情况下，载入设备列表（调用 initUI();）时会自动触发下拉框选择第一项，
-     * 可以不用对摄像头设备进行初始化。
-     *
-     * 但是，实际测试中，这样操作会导致默认音频输入设备格式不对，原因未知。
-     * 故先对音频输入设备进行单独初始化。
-     */
+    // 初始化音频输入设备
     initInputDevice();
 
     // 初始化 UI 设备列表
@@ -50,7 +44,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // 初始化计时器状态（用于桌面共享）
     m_timer->stop();
 
-    qDebug() << Qt::endl << "Initialization Finished!" << Qt::endl;
+    qDebug() << "Initialization Finished!";
 }
 
 MainWindow::~MainWindow()
@@ -86,9 +80,9 @@ void MainWindow::initUdpConnections()
 void MainWindow::initInputDevice()
 {
     // 初始化默认音频输入格式
-    format.setSampleRate(8000);
-    format.setChannelCount(1);
-    format.setSampleSize(16);
+    format.setSampleRate(SAMPLE_RATE);
+    format.setChannelCount(CHANNEL_COUNT);
+    format.setSampleSize(SAMPLE_SIZE);
     format.setCodec("audio/pcm");
     format.setSampleType(QAudioFormat::SignedInt);
     format.setByteOrder(QAudioFormat::LittleEndian);
@@ -103,19 +97,11 @@ void MainWindow::initInputDevice()
 
     // 初始化音频输入设备
     m_audioInput = new QAudioInput(info, format, this);
-    m_audioDevice = m_audioInput->start();
-    connect(m_audioDevice, SIGNAL(readyRead()), this, SLOT(on_audioReadyRead()));
-    qDebug() << "Input Device: " << info.deviceName();
-    qDebug() << format.sampleRate() << " " << format.channelCount() << " " << format.sampleSize() << " " << format.codec();
-
-    // 启动时不传输音频
-    flag_audio = true;
-    on_btn_audio_clicked();
 }
 
 void MainWindow::initUI()
 {
-    ui->cb_resolution->setDisabled(true);   // 禁用摄像头分辨率下拉框（摄像头设备初始化后才可以使用）
+    ui->cb_resolution->setDisabled(true);   // 禁用摄像头分辨率下拉框（摄像头设备启动后才可以使用）
 
     // 初始化主界面设备列表（可用设备列表为空则禁用相关选项）
     if(availableCameras.isEmpty())
@@ -174,10 +160,9 @@ void MainWindow::on_btn_camera_clicked()
         m_camera->start();
         qDebug() << "Camera Started!";
 
-        // 摄像头启动后才能获取支持的图像格式列表
+        // 摄像头设备启动后才能获取支持的图像格式列表
         initCamera();
 
-        //ui->cb_camera->setDisabled(true);
         ui->cb_resolution->setEnabled(true);
         flag_camera = true;
 
@@ -193,11 +178,10 @@ void MainWindow::on_btn_camera_clicked()
         m_camera->stop();
         qDebug() << "Camera Stopped!";
         ui->videoViewer->clear();
-        //ui->cb_camera->setEnabled(true);
 
         /*
-         *  摄像头关闭后，分辨率下拉框清空，
-         *  直接清空会触发对应选项，须先断开信号槽
+         * 摄像头关闭后，分辨率下拉框清空，
+         * 直接清空会触发对应选项，须先断开信号槽
          */
         ui->cb_resolution->setDisabled(true);
         ui->cb_resolution->disconnect();
@@ -213,17 +197,24 @@ void MainWindow::on_cb_camera_currentIndexChanged(int index)
     if(flag_camera)
     {
         m_camera->stop();
+        ui->videoViewer->clear();
         ui->cb_resolution->disconnect();
         ui->cb_resolution->clear();
+        connect(ui->cb_resolution, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_resolution_currentIndexChanged(int)));
     }
 
+    delete m_camera;
+    m_viewFinder->disconnect();
+    delete m_viewFinder;
+    m_viewFinder = new VideoSurface(this);
     m_camera = new QCamera(availableCameras.at(index));
+    m_camera->setViewfinder(m_viewFinder);
+    connect(m_viewFinder, SIGNAL(videoFrameChanged(QVideoFrame)), this, SLOT(on_videoFrameChanged(QVideoFrame)));
 
     if(flag_camera)
     {
         m_camera->start();
         initCamera();
-        connect(ui->cb_resolution, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_resolution_currentIndexChanged(int)));
     }
 
     qDebug() << "Camera: " << availableCameras.at(index).description();
@@ -269,7 +260,7 @@ void MainWindow::on_videoFrameChanged(QVideoFrame frame)
 #elif defined Q_OS_LINUX
     image = image.mirrored(false, false);   // 左右/上下镜像
 #endif
-    image.scaled(image.size().boundedTo(QSize(1920, 1080)), Qt::KeepAspectRatio, Qt::SmoothTransformation); // 分辨率高于 1080p 则压缩
+    image.scaled(image.size().boundedTo(QSize(1280, 720)), Qt::KeepAspectRatio, Qt::SmoothTransformation); // 分辨率高于 1080p 则压缩
 
     // 本地窗口预览
     ui->videoViewer->setPixmap(QPixmap::fromImage(image).scaled(ui->videoViewer->size(), Qt::KeepAspectRatio, Qt::FastTransformation));
@@ -350,7 +341,7 @@ void MainWindow::on_timeOut()
     oldImage = image;
     */
 
-    image.scaled(image.size().boundedTo(QSize(1920, 1080)), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    image.scaled(image.size().boundedTo(QSize(1280, 720)), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
     // 本地窗口预览
     ui->videoViewer->setPixmap(QPixmap::fromImage(image).scaled(ui->videoViewer->size(), Qt::KeepAspectRatio, Qt::FastTransformation));
@@ -398,15 +389,15 @@ void MainWindow::on_btn_audio_clicked()
     if(!flag_audio)
     {
         m_audioDevice = m_audioInput->start();
-        connect(m_audioDevice, SIGNAL(readyRead()), this, SLOT(on_audioReadyRead()));
+        connect(m_audioDevice, SIGNAL(readyRead()), this, SLOT(on_deviceReadyRead()));
         qDebug() << "Audio Share Started!";
         flag_audio = true;
     }
     else
     {
-        // 终止音频传输时，需要停止设备并断开设备输入输出流，避免内存溢出
-        m_audioInput->stop();
+        // 终止音频传输时，要先断开设备输入输出流，再停止设备，避免程序异常退出
         m_audioDevice->disconnect();
+        m_audioInput->stop();
 
         qDebug() << "Audio Share Stopped!";
         flag_audio = false;
@@ -415,11 +406,11 @@ void MainWindow::on_btn_audio_clicked()
 
 void MainWindow::on_cb_device_currentIndexChanged(int index)
 {
-    // 切换音频设备时，需要停止设备并断开设备输入输出流，避免内存溢出
+    // 切换音频输入设备时，要先断开设备输入输出流，再停止设备，避免程序异常退出
     if(flag_audio)
     {
-        m_audioInput->stop();
         m_audioDevice->disconnect();
+        m_audioInput->stop();
     }
 
     QAudioFormat format = this->format;
@@ -429,22 +420,21 @@ void MainWindow::on_cb_device_currentIndexChanged(int index)
         format = info.nearestFormat(this->format);
     }
 
+    delete m_audioInput;
     m_audioInput = new QAudioInput(info, format, this);
 
     if(flag_audio)
     {
         m_audioDevice = m_audioInput->start();
-        connect(m_audioDevice, SIGNAL(readyRead()), this, SLOT(on_audioReadyRead()));
+        connect(m_audioDevice, SIGNAL(readyRead()), this, SLOT(on_deviceReadyRead()));
     }
 
     qDebug() << "Input Device: " << info.deviceName();
     qDebug() << format.sampleRate() << " " << format.channelCount() << " " << format.sampleSize() << " " << format.codec();
 }
 
-void MainWindow::on_audioReadyRead()
+void MainWindow::on_deviceReadyRead()
 {
-    qint64 res; // UDP 结果
-
     // 初始化音频数据包结构
     videoPack vp;
     memset(&vp, 0, sizeof(vp));
@@ -453,10 +443,30 @@ void MainWindow::on_audioReadyRead()
     vp.lens = static_cast<int>(m_audioDevice->read(vp.data, sizeof(vp.data)));
     // qDebug() << QString(vp.data).toUtf8();
 
-    if((res = audio_socket->writeDatagram(reinterpret_cast<const char*>(&vp), sizeof(vp), groupAddress, audio_port)) != sizeof(vp))
+    qint64 res, sentBytes = 0, len = UDP_MAX_SIZE;
+
+    audio_socket->writeDatagram(QString("Begin").toUtf8(), QString("Begin").toUtf8().size(), groupAddress, audio_port);
+    audio_socket->waitForBytesWritten();
+
+    while(sentBytes < static_cast<int>(sizeof(vp)))
     {
-        qDebug() << "res = " << res << " sentBytes = " << sizeof(vp);
-        return;
+        if(sentBytes + len > static_cast<int>(sizeof(vp)))
+        {
+            len = static_cast<int>(sizeof(vp)) - sentBytes;
+        }
+        else
+        {
+            len = UDP_MAX_SIZE;
+        }
+
+        if((res = audio_socket->writeDatagram(reinterpret_cast<const char *>(&vp) + sentBytes, len, groupAddress, audio_port)) != len)
+        {
+            qDebug() << "res = " << res << " sentBytes = " << len;
+            break;
+        }
+        audio_socket->waitForBytesWritten();
+
+        sentBytes += len;
     }
 }
 
