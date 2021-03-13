@@ -38,9 +38,9 @@
    <widget class="QLabel" name="videoViewer">
     <property name="geometry">
      <rect>
-      <x>25</x>
-      <y>20</y>
-      <width>750</width>
+      <x>0</x>
+      <y>0</y>
+      <width>800</width>
       <height>450</height>
      </rect>
     </property>
@@ -66,8 +66,8 @@
    <widget class="QPushButton" name="btn_camera">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>490</y>
+      <x>20</x>
+      <y>480</y>
       <width>80</width>
       <height>30</height>
      </rect>
@@ -76,30 +76,10 @@
      <string>Camera</string>
     </property>
    </widget>
-   <widget class="QComboBox" name="cb_camera">
-    <property name="geometry">
-     <rect>
-      <x>140</x>
-      <y>490</y>
-      <width>200</width>
-      <height>30</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="cb_resolution">
-    <property name="geometry">
-     <rect>
-      <x>370</x>
-      <y>490</y>
-      <width>200</width>
-      <height>30</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QPushButton" name="btn_screen">
     <property name="geometry">
      <rect>
-      <x>30</x>
+      <x>20</x>
       <y>540</y>
       <width>80</width>
       <height>30</height>
@@ -107,6 +87,16 @@
     </property>
     <property name="text">
      <string>Screen</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="cb_camera">
+    <property name="geometry">
+     <rect>
+      <x>140</x>
+      <y>480</y>
+      <width>200</width>
+      <height>30</height>
+     </rect>
     </property>
    </widget>
    <widget class="QPushButton" name="btn_audio">
@@ -125,11 +115,62 @@
    <widget class="QComboBox" name="cb_device">
     <property name="geometry">
      <rect>
-      <x>250</x>
+      <x>260</x>
       <y>540</y>
-      <width>321</width>
+      <width>320</width>
       <height>30</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="cb_resolution">
+    <property name="geometry">
+     <rect>
+      <x>380</x>
+      <y>480</y>
+      <width>200</width>
+      <height>30</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QSlider" name="slider_volume">
+    <property name="geometry">
+     <rect>
+      <x>620</x>
+      <y>540</y>
+      <width>160</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="maximum">
+     <number>100</number>
+    </property>
+    <property name="pageStep">
+     <number>5</number>
+    </property>
+    <property name="value">
+     <number>100</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+    <property name="tickPosition">
+     <enum>QSlider::NoTicks</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="volume">
+    <property name="geometry">
+     <rect>
+      <x>640</x>
+      <y>480</y>
+      <width>120</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Volume: 100</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
     </property>
    </widget>
   </widget>

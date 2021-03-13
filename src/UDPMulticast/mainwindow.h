@@ -77,9 +77,14 @@ private slots:
     void on_timeOut();
     void on_btn_audio_clicked();
     void on_cb_device_currentIndexChanged(int index);
+    void on_slider_volume_valueChanged(int value);
+    void on_volumeChanged(int value);
     void on_deviceReadyRead();
 
     void on_mouseMove();
+
+signals:
+    void volumeChanged(int value);
 
 };
 

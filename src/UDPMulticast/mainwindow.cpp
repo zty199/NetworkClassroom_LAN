@@ -135,6 +135,7 @@ void MainWindow::initConnections()
 {
     connect(m_viewFinder, SIGNAL(videoFrameChanged(QVideoFrame)), this, SLOT(on_videoFrameChanged(QVideoFrame)));
     connect(m_timer, SIGNAL(timeout()), this, SLOT(on_timeOut()));
+    connect(this, SIGNAL(volumeChanged(int)), this, SLOT(on_volumeChanged(int)));
     // connect(m_timer, SIGNAL(timeout()), this, SLOT(on_mouseMove()));    // 屏幕共享时标记鼠标位置
 }
 
@@ -433,6 +434,19 @@ void MainWindow::on_cb_device_currentIndexChanged(int index)
 
     qDebug() << "Input Device: " << info.deviceName();
     qDebug() << format.sampleRate() << " " << format.channelCount() << " " << format.sampleSize() << " " << format.codec();
+}
+
+void MainWindow::on_slider_volume_valueChanged(int value)
+{
+    // 滑动条调节音频输入设备音量（仅调节音频流音量而非设备全局音量），范围 0.0 ~ 1.0
+    m_audioInput->setVolume(qreal(value) / 100);
+    emit this->volumeChanged(value);
+}
+
+void MainWindow::on_volumeChanged(int value)
+{
+    // 同步显示当前音量
+    ui->volume->setText("Volume: " + QString::number(value));
 }
 
 void MainWindow::on_deviceReadyRead()

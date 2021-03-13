@@ -55,10 +55,13 @@ private slots:
     void on_videoReadyRead();
     void on_btn_audio_clicked();
     void on_cb_device_currentIndexChanged(int index);
+    void on_slider_volume_valueChanged(int value);
+    void on_volumeChanged(int value);
     void on_audioReadyRead();
     void on_deviceReadyWrite();
 
 signals:
+    void volumeChanged(int value);
     void readyWrite();
 
 };
