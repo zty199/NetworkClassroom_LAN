@@ -159,6 +159,43 @@ void MainWindow::on_btn_audio_clicked()
 
         qDebug() << "Audio Share Stopped!";
         flag_audio = false;
+
+        // 刷新音频输出可用设备列表
+        if(availableDevices == QAudioDeviceInfo::availableDevices(QAudio::AudioOutput))
+        {
+            return;
+        }
+
+        int index = -1;
+        QAudioDeviceInfo curOutput = availableDevices.at(ui->cb_device->currentIndex());
+        ui->cb_device->disconnect();
+        ui->cb_device->clear();
+
+        availableDevices = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
+        if(availableDevices.isEmpty())
+        {
+            ui->btn_audio->setDisabled(true);
+            ui->cb_device->setDisabled(true);
+        }
+        else
+        {
+            for(int i = 0; i < availableDevices.size(); i++)
+            {
+                ui->cb_device->addItem(availableDevices.at(i).deviceName(), i);
+                if(availableDevices.at(i).deviceName() == curOutput.deviceName())
+                {
+                    index = i;
+                }
+            }
+        }
+
+        if(index < 0)
+        {
+            index = 0;
+        }
+        connect(ui->cb_device, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_device_currentIndexChanged(int)));
+        ui->cb_device->setCurrentIndex(index);
+        emit ui->cb_device->currentIndexChanged(index);
     }
 }
 

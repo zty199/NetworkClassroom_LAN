@@ -14,6 +14,8 @@
 
 * Support volume adjustment. (Only current audio stream affected)
 
+* Support rescan available devices.
+
 ## Existing Issues
 * When using wireless cards, UDP Multicast is extremely Unreliable, both sending and receiving ends meet serious packet loss. Ethernet cards recommended.
 
@@ -24,7 +26,7 @@
 * Available devices list can't refresh in real time. Choosing one that is removed may cause crash, and new devices connected won't show up.
 
 ## Future Plan
-Real-time Device List, White Board, Screen Mark, File Transfer, Text Message Transmission, Student Sign-in, etc.
+White Board, Screen Mark, File Transfer, Text Message Transmission, Student Sign-in, etc.
 
 ## Reference
 * [Qt Documentation](https://doc.qt.io/)

@@ -190,6 +190,43 @@ void MainWindow::on_btn_camera_clicked()
         connect(ui->cb_resolution, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_resolution_currentIndexChanged(int)));
 
         flag_camera = false;
+
+        // 刷新摄像头可用设备列表
+        if(availableCameras == QCameraInfo::availableCameras())
+        {
+            return;
+        }
+
+        int index = -1;
+        QCameraInfo curCam = availableCameras.at(ui->cb_camera->currentIndex());
+        ui->cb_camera->disconnect();
+        ui->cb_camera->clear();
+
+        availableCameras = QCameraInfo::availableCameras();
+        if(availableCameras.isEmpty())
+        {
+            ui->btn_camera->setDisabled(true);
+            ui->cb_camera->setDisabled(true);
+        }
+        else
+        {
+            for(int i = 0; i < availableCameras.size(); i++)
+            {
+                ui->cb_camera->addItem(availableCameras.at(i).description(), i);
+                if(availableDevices.at(i).deviceName() == curCam.deviceName())
+                {
+                    index = i;
+                }
+            }
+        }
+
+        if(index < 0)
+        {
+            index = 0;
+        }
+        connect(ui->cb_camera, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_camera_currentIndexChanged(int)));
+        ui->cb_camera->setCurrentIndex(index);
+        emit ui->cb_camera->currentIndexChanged(index);
     }
 }
 
@@ -404,6 +441,44 @@ void MainWindow::on_btn_audio_clicked()
 
         qDebug() << "Audio Share Stopped!";
         flag_audio = false;
+
+        // 刷新音频输入可用设备列表
+        if(availableDevices == QAudioDeviceInfo::availableDevices(QAudio::AudioInput))
+        {
+            return;
+        }
+
+        int index = -1;
+        QAudioDeviceInfo curInput = availableDevices.at(ui->cb_device->currentIndex());
+        qDebug() << curInput.deviceName();
+        ui->cb_device->disconnect();
+        ui->cb_device->clear();
+
+        availableDevices = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
+        if(availableDevices.isEmpty())
+        {
+            ui->btn_audio->setDisabled(true);
+            ui->cb_device->setDisabled(true);
+        }
+        else
+        {
+            for(int i = 0; i < availableDevices.size(); i++)
+            {
+                ui->cb_device->addItem(availableDevices.at(i).deviceName(), i);
+                if(availableDevices.at(i).deviceName() == curInput.deviceName())
+                {
+                    index = i;
+                }
+            }
+        }
+
+        if(index < 0)
+        {
+            index = 0;
+        }
+        connect(ui->cb_device, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_device_currentIndexChanged(int)));
+        ui->cb_device->setCurrentIndex(index);
+        emit ui->cb_device->currentIndexChanged(index);
     }
 }
 
