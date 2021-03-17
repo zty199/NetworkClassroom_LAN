@@ -66,9 +66,9 @@
    <widget class="QPushButton" name="btn_camera">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>480</y>
-      <width>80</width>
+      <x>40</x>
+      <y>510</y>
+      <width>100</width>
       <height>30</height>
      </rect>
     </property>
@@ -79,9 +79,9 @@
    <widget class="QPushButton" name="btn_screen">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>540</y>
-      <width>80</width>
+      <x>40</x>
+      <y>470</y>
+      <width>100</width>
       <height>30</height>
      </rect>
     </property>
@@ -92,9 +92,9 @@
    <widget class="QComboBox" name="cb_camera">
     <property name="geometry">
      <rect>
-      <x>140</x>
-      <y>480</y>
-      <width>200</width>
+      <x>180</x>
+      <y>510</y>
+      <width>270</width>
       <height>30</height>
      </rect>
     </property>
@@ -102,9 +102,9 @@
    <widget class="QPushButton" name="btn_audio">
     <property name="geometry">
      <rect>
-      <x>140</x>
-      <y>540</y>
-      <width>80</width>
+      <x>40</x>
+      <y>550</y>
+      <width>100</width>
       <height>30</height>
      </rect>
     </property>
@@ -115,9 +115,9 @@
    <widget class="QComboBox" name="cb_device">
     <property name="geometry">
      <rect>
-      <x>260</x>
-      <y>540</y>
-      <width>320</width>
+      <x>180</x>
+      <y>550</y>
+      <width>270</width>
       <height>30</height>
      </rect>
     </property>
@@ -125,9 +125,9 @@
    <widget class="QComboBox" name="cb_resolution">
     <property name="geometry">
      <rect>
-      <x>380</x>
-      <y>480</y>
-      <width>200</width>
+      <x>490</x>
+      <y>510</y>
+      <width>270</width>
       <height>30</height>
      </rect>
     </property>
@@ -135,9 +135,9 @@
    <widget class="QSlider" name="slider_volume">
     <property name="geometry">
      <rect>
-      <x>620</x>
-      <y>540</y>
-      <width>160</width>
+      <x>490</x>
+      <y>550</y>
+      <width>150</width>
       <height>30</height>
      </rect>
     </property>
@@ -161,7 +161,7 @@
     <property name="geometry">
      <rect>
       <x>640</x>
-      <y>480</y>
+      <y>550</y>
       <width>120</width>
       <height>30</height>
      </rect>
@@ -171,6 +171,19 @@
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_screenPen">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>470</y>
+      <width>100</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>ScreenPen</string>
     </property>
    </widget>
   </widget>

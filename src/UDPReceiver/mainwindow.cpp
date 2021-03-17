@@ -126,7 +126,7 @@ void MainWindow::on_videoReadyRead()
     {
         QPixmap pixmap;
         pixmap.loadFromData(buf, static_cast<uint>(receivedBytes), "JPEG");
-        ui->videoViewer->setPixmap(pixmap.scaled(ui->videoViewer->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        ui->videoViewer->setPixmap(pixmap.scaled(ui->videoViewer->size(), Qt::KeepAspectRatio, Qt::FastTransformation));
 
         // 清空数据
         totalBytes = 0;

@@ -14,9 +14,10 @@ MainWindow::MainWindow(QWidget *parent) :
     m_viewFinder(new VideoSurface(this)),
     flag_camera(false),
     m_screen(QApplication::primaryScreen()),
-    availableDevices(QAudioDeviceInfo::availableDevices(QAudio::AudioInput)),
     m_timer(new QTimer(this)),
+    m_screenPen(new ScreenPen),
     flag_screen(false),
+    availableDevices(QAudioDeviceInfo::availableDevices(QAudio::AudioInput)),
     flag_audio(false),
     video_socket(new QUdpSocket(this)),
     audio_socket(new QUdpSocket(this)),
@@ -101,6 +102,8 @@ void MainWindow::initInputDevice()
 
 void MainWindow::initUI()
 {
+    m_screenPen->hide();    // 启动时不显示屏幕画笔
+    ui->btn_screenPen->setDisabled(true);   // 禁用屏幕画笔按钮
     ui->cb_resolution->setDisabled(true);   // 禁用摄像头分辨率下拉框（摄像头设备启动后才可以使用）
 
     // 初始化主界面设备列表（可用设备列表为空则禁用相关选项）
@@ -298,7 +301,7 @@ void MainWindow::on_videoFrameChanged(QVideoFrame frame)
 #elif defined Q_OS_LINUX
     image = image.mirrored(false, false);   // 左右/上下镜像
 #endif
-    image.scaled(image.size().boundedTo(QSize(1280, 720)), Qt::KeepAspectRatio, Qt::SmoothTransformation); // 分辨率高于 720p 则压缩
+    image.scaled(image.size().boundedTo(QSize(1280, 720)), Qt::KeepAspectRatio, Qt::FastTransformation); // 分辨率高于 720p 则压缩
 
     // 本地窗口预览
     ui->videoViewer->setPixmap(QPixmap::fromImage(image).scaled(ui->videoViewer->size(), Qt::KeepAspectRatio, Qt::FastTransformation));
@@ -349,7 +352,7 @@ void MainWindow::on_btn_screen_clicked()
 {
     if(!flag_screen)
     {
-        this->showMinimized();  // 屏幕共享时隐藏主窗口
+        ui->btn_screenPen->setEnabled(true);    // 启用屏幕画笔按钮
         m_timer->start(40);     // 每隔 40ms 触发（等同于 25Hz 刷新率）
         qDebug() << "Screen Share Started!";
         flag_screen = true;
@@ -363,6 +366,7 @@ void MainWindow::on_btn_screen_clicked()
         qDebug() << "Screen Share Stopped!";
         ui->videoViewer->clear();
         flag_screen = false;
+        ui->btn_screenPen->setDisabled(true);
     }
 }
 
@@ -422,6 +426,12 @@ void MainWindow::on_timeOut()
 
         sentBytes += len;
     }
+}
+
+void MainWindow::on_btn_screenPen_clicked()
+{
+    this->showMinimized();
+    m_screenPen->showFullScreen();
 }
 
 void MainWindow::on_btn_audio_clicked()

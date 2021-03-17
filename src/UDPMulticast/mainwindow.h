@@ -14,6 +14,8 @@
 
 #include "videosurface.h"
 
+#include "screenpen.h"
+
 #define UDP_MAX_SIZE    1472    // UDP 数据包最大长度   * MTU = 1500，故数据包大小 1500 - 20（IP头）- 8（UDP头）
 
 #define SAMPLE_RATE     44100   // 采样频率
@@ -42,12 +44,14 @@ private:
     bool flag_camera;
 
     QScreen *m_screen;
+    QTimer *m_timer;
+    ScreenPen *m_screenPen;
+    bool flag_screen;
+
     QList<QAudioDeviceInfo> availableDevices;
     QAudioInput *m_audioInput;
     QIODevice *m_audioDevice;
     QAudioFormat format;
-    QTimer *m_timer;
-    bool flag_screen;
     bool flag_audio;
 
     QUdpSocket *video_socket;
@@ -75,6 +79,7 @@ private slots:
     void on_videoFrameChanged(QVideoFrame);
     void on_btn_screen_clicked();
     void on_timeOut();
+    void on_btn_screenPen_clicked();
     void on_btn_audio_clicked();
     void on_cb_device_currentIndexChanged(int index);
     void on_slider_volume_valueChanged(int value);

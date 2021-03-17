@@ -16,6 +16,8 @@
 
 * Support rescan available devices.
 
+*Support white board and screen mark when sharing screen.
+
 ## Existing Issues
 * When using wireless cards, UDP Multicast is extremely Unreliable, both sending and receiving ends meet serious packet loss. Ethernet cards recommended.
 
@@ -26,7 +28,7 @@
 * Available devices list can't refresh in real time. Choosing one that is removed may cause crash, and new devices connected won't show up.
 
 ## Future Plan
-White Board, Screen Mark, File Transfer, Text Message Transmission, Student Sign-in, etc.
+File Transfer, Text Message Transmission, Student Sign-in, etc.
 
 ## Reference
 * [Qt Documentation](https://doc.qt.io/)
@@ -42,6 +44,8 @@ White Board, Screen Mark, File Transfer, Text Message Transmission, Student Sign
 * [QT音频开发：使用QAudioInput+QAudioOutput实现录音机功能，支持选择指定声卡录音，指定扬声器放音。](https://blog.csdn.net/xiaolong1126626497/article/details/105669037)
 
 * [Qt多网卡组播问题解决方法](https://blog.csdn.net/sun_xf1/article/details/106423552)
+
+* [海天鹰屏幕笔](https://github.com/sonichy/HTYScreenPen)
 
 ## Clarification
 This project is my graduation design for undergraduates. Only for study and communication.
