@@ -7,12 +7,13 @@
 class VideoSurface : public QAbstractVideoSurface
 {
     Q_OBJECT
+
 public:
     explicit VideoSurface(QObject *parent = nullptr);
 
-    virtual QList<QVideoFrame::PixelFormat> supportedPixelFormats(
-            QAbstractVideoBuffer::HandleType handleType) const;
-    bool present(const QVideoFrame &frame);
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(
+            QAbstractVideoBuffer::HandleType handleType) const override;
+    bool present(const QVideoFrame &frame) override;
 
 signals:
     void videoFrameChanged(QVideoFrame);

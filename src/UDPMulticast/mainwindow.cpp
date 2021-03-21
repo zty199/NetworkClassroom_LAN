@@ -20,10 +20,10 @@ MainWindow::MainWindow(QWidget *parent) :
     availableDevices(QAudioDeviceInfo::availableDevices(QAudio::AudioInput)),
     flag_audio(false),
     video_socket(new QUdpSocket(this)),
-    audio_socket(new QUdpSocket(this)),
     groupAddress("239.0.0.1"),
     video_port(8888),
-    audio_port(8889)
+    video_threadPool(new QThreadPool(this)),
+    audio_threadPool(new QThreadPool(this))
 {
     ui->setupUi(this);
 
@@ -46,11 +46,26 @@ MainWindow::MainWindow(QWidget *parent) :
     m_timer->stop();
 
     qDebug() << "Initialization Finished!";
+
+    video_threadPool->setMaxThreadCount(2);
+    audio_threadPool->setMaxThreadCount(1);
 }
 
 MainWindow::~MainWindow()
 {
     video_socket->writeDatagram(QString("Stop").toUtf8().data(), QString("Stop").toUtf8().size(), groupAddress, video_port);
+    video_threadPool->clear();
+    video_threadPool->waitForDone();
+    delete video_threadPool;
+
+    audio_threadPool->clear();
+    audio_threadPool->waitForDone();
+    delete audio_threadPool;
+
+    flag_camera = true;
+    emit ui->btn_camera->clicked();
+    delete m_camera;
+
     delete ui;
 }
 
@@ -74,7 +89,6 @@ void MainWindow::initUdpConnections()
     // video_socket->bind(QHostAddress::AnyIPv4, video_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);  // 绑定广播地址端口（发送端可以不绑定）
     // video_socket->setMulticastInterface(intf);                                   // 设置组播网卡
     video_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);          // 设置套接字属性
-    audio_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);          // 设置套接字属性
     // video_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);  // 禁止本机接收
 }
 
@@ -102,35 +116,19 @@ void MainWindow::initInputDevice()
 
 void MainWindow::initUI()
 {
-    m_screenPen->hide();    // 启动时不显示屏幕画笔
+    m_screenPen->hide();                    // 启动时不显示屏幕画笔
     ui->btn_screenPen->setDisabled(true);   // 禁用屏幕画笔按钮
     ui->cb_resolution->setDisabled(true);   // 禁用摄像头分辨率下拉框（摄像头设备启动后才可以使用）
 
-    // 初始化主界面设备列表（可用设备列表为空则禁用相关选项）
-    if(availableCameras.isEmpty())
+    // 初始化主界面设备列表
+    foreach(const QCameraInfo &camera, availableCameras)
     {
-        ui->btn_camera->setDisabled(true);
-        ui->cb_camera->setDisabled(true);
-    }
-    else
-    {
-        foreach(const QCameraInfo &camera, availableCameras)
-        {
-            ui->cb_camera->addItem(camera.description(), availableCameras.indexOf(camera));
-        }
+        ui->cb_camera->addItem(camera.description(), availableCameras.indexOf(camera));
     }
 
-    if(availableDevices.isEmpty())
+    foreach(const QAudioDeviceInfo &device, availableDevices)
     {
-        ui->btn_audio->setDisabled(true);
-        ui->cb_device->setDisabled(true);
-    }
-    else
-    {
-        foreach(const QAudioDeviceInfo &device, availableDevices)
-        {
-            ui->cb_device->addItem(device.deviceName(), availableDevices.indexOf(device));
-        }
+        ui->cb_device->addItem(device.deviceName(), availableDevices.indexOf(device));
     }
 }
 
@@ -149,9 +147,10 @@ void MainWindow::initCamera()
     foreach(const QCameraViewfinderSettings &viewSet, viewSets)
     {
         // qDebug() << "max rate = " << viewSet.maximumFrameRate() << " min rate = " << viewSet.minimumFrameRate() << " resolution = " << viewSet.resolution() << " Format = " << viewSet.pixelFormat() << "" << viewSet.pixelAspectRatio();
-        if(viewSet.pixelFormat() == QVideoFrame::Format_Jpeg)
+        QString resolution = QString::number(viewSet.resolution().width()) + "x" + QString::number(viewSet.resolution().height());
+        if(ui->cb_resolution->findText(resolution) < 0)
         {
-            ui->cb_resolution->addItem(QString::number(viewSet.resolution().width()) + "x" + QString::number(viewSet.resolution().height()), viewSets.indexOf(viewSet));
+            ui->cb_resolution->addItem(resolution, viewSets.indexOf(viewSet));
         }
     }
 }
@@ -172,7 +171,7 @@ void MainWindow::on_btn_camera_clicked()
 
         // 摄像头功能与屏幕共享功能互斥（暂时）
         flag_screen = true;
-        on_btn_screen_clicked();
+        emit ui->btn_screen->clicked();
     }
     else
     {
@@ -201,18 +200,22 @@ void MainWindow::on_btn_camera_clicked()
         }
 
         int index = -1;
-        QCameraInfo curCam = availableCameras.at(ui->cb_camera->currentIndex());
+        QCameraInfo curCam;
+        if(ui->cb_camera->currentIndex() > index)
+        {
+            curCam = availableCameras.at(ui->cb_camera->currentIndex());
+        }
         ui->cb_camera->disconnect();
         ui->cb_camera->clear();
 
         availableCameras = QCameraInfo::availableCameras();
         if(availableCameras.isEmpty())
         {
-            ui->btn_camera->setDisabled(true);
-            ui->cb_camera->setDisabled(true);
+            connect(ui->cb_camera, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_camera_currentIndexChanged(int)));
         }
         else
         {
+            // 记录当前设备选项
             for(int i = 0; i < availableCameras.size(); i++)
             {
                 ui->cb_camera->addItem(availableCameras.at(i).description(), i);
@@ -221,15 +224,16 @@ void MainWindow::on_btn_camera_clicked()
                     index = i;
                 }
             }
-        }
 
-        if(index < 0)
-        {
-            index = 0;
+            if(index < 0)
+            {
+                index = 0;
+            }
+
+            connect(ui->cb_camera, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_camera_currentIndexChanged(int)));
+            ui->cb_camera->setCurrentIndex(index);
+            emit ui->cb_camera->currentIndexChanged(index);
         }
-        connect(ui->cb_camera, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_camera_currentIndexChanged(int)));
-        ui->cb_camera->setCurrentIndex(index);
-        emit ui->cb_camera->currentIndexChanged(index);
     }
 }
 
@@ -269,13 +273,11 @@ void MainWindow::on_cb_resolution_currentIndexChanged(int index)
 
 void MainWindow::on_videoFrameChanged(QVideoFrame frame)
 {
-    // static QImage oldImage;
-
     QVideoFrame tmp(frame);
     tmp.map(QAbstractVideoBuffer::ReadOnly);
     if(!tmp.isValid())
     {
-        qDebug() << "Empty Frame!";
+        // qDebug() << "Empty Frame!";
         return;
     }
 
@@ -288,6 +290,8 @@ void MainWindow::on_videoFrameChanged(QVideoFrame frame)
 
     // 如果图像未变化则不发送（占 CPU，需要其他方式处理）
     /*
+    static QImage oldImage;
+
     if(oldImage == image)
     {
         return;
@@ -303,49 +307,7 @@ void MainWindow::on_videoFrameChanged(QVideoFrame frame)
 #endif
     image.scaled(image.size().boundedTo(QSize(1280, 720)), Qt::KeepAspectRatio, Qt::FastTransformation); // 分辨率高于 720p 则压缩
 
-    // 本地窗口预览
-    ui->videoViewer->setPixmap(QPixmap::fromImage(image).scaled(ui->videoViewer->size(), Qt::KeepAspectRatio, Qt::FastTransformation));
-
-    // 暂存帧图像
-    QByteArray byteArray;
-    QBuffer buffer(&byteArray);
-
-    buffer.open(QIODevice::ReadWrite);
-    image.save(&buffer, "JPEG");
-
-    qint64 res,                 // UDP 结果
-            sentBytes = 0,      // 已发送字节数
-            len = UDP_MAX_SIZE; // 本次发送字节数
-
-    video_socket->writeDatagram(QString("size=%1").arg(byteArray.size()).toUtf8(),
-                                QString("size=%1").arg(byteArray.size()).toUtf8().size(),
-                                groupAddress,
-                                video_port);
-    video_socket->waitForBytesWritten();    // 等待数据发送完成
-
-    // qDebug() << "totalBytes = " << byteArray.size();
-
-    while(sentBytes < byteArray.size())
-    {
-        if(sentBytes + len > byteArray.size())
-        {
-            len = byteArray.size() - sentBytes;
-        }
-        else
-        {
-            len = UDP_MAX_SIZE;
-        }
-
-        res = video_socket->writeDatagram(byteArray.data() + sentBytes, len, groupAddress, video_port);
-        if(res < 0)
-        {
-            qDebug() << "video_socket: Write Datagram Failed!";
-            break;
-        }
-        video_socket->waitForBytesWritten();
-
-        sentBytes += len;
-    }
+    video_threadPool->start(new VideoFrameSender(image, this));
 }
 
 void MainWindow::on_btn_screen_clicked()
@@ -353,11 +315,11 @@ void MainWindow::on_btn_screen_clicked()
     if(!flag_screen)
     {
         ui->btn_screenPen->setEnabled(true);    // 启用屏幕画笔按钮
-        m_timer->start(40);     // 每隔 40ms 触发（等同于 25Hz 刷新率）
+        m_timer->start(15);     // 每隔 15ms 触发（约等于 60Hz 刷新率）
         qDebug() << "Screen Share Started!";
         flag_screen = true;
         flag_camera = true;
-        on_btn_camera_clicked();
+        emit ui->btn_camera->clicked();
     }
     else
     {
@@ -372,11 +334,11 @@ void MainWindow::on_btn_screen_clicked()
 
 void MainWindow::on_timeOut()
 {
-    // static QImage oldImage;
-
     QImage image = m_screen->grabWindow(0).toImage();    // 截取桌面图像
 
     /*
+    static QImage oldImage;
+
     if(oldImage == image)
     {
         return;
@@ -384,54 +346,21 @@ void MainWindow::on_timeOut()
     oldImage = image;
     */
 
-    image.scaled(image.size().boundedTo(QSize(1280, 720)), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    image.scaled(image.size().boundedTo(QSize(1280, 720)), Qt::KeepAspectRatio, Qt::FastTransformation);
 
-    // 本地窗口预览
-    ui->videoViewer->setPixmap(QPixmap::fromImage(image).scaled(ui->videoViewer->size(), Qt::KeepAspectRatio, Qt::FastTransformation));
-
-    QByteArray byteArray;
-    QBuffer buffer(&byteArray);
-
-    buffer.open(QIODevice::ReadWrite);
-    image.save(&buffer, "JPEG");
-
-    qint64 res, sentBytes = 0, len = UDP_MAX_SIZE;
-
-    video_socket->writeDatagram(QString("size=%1").arg(byteArray.size()).toUtf8(),
-                                QString("size=%1").arg(byteArray.size()).toUtf8().size(),
-                                groupAddress,
-                                video_port);
-    video_socket->waitForBytesWritten();
-
-    // qDebug() << "totalBytes = " << byteArray.size();
-
-    while(sentBytes < byteArray.size())
-    {
-        if(sentBytes + len > byteArray.size())
-        {
-            len = byteArray.size() - sentBytes;
-        }
-        else
-        {
-            len = UDP_MAX_SIZE;
-        }
-
-        res = video_socket->writeDatagram(byteArray.data() + sentBytes, len, groupAddress, video_port);
-        if(res < 0)
-        {
-            qDebug() << "video_socket: Write Datagram Failed!";
-            break;
-        }
-        video_socket->waitForBytesWritten();
-
-        sentBytes += len;
-    }
+    video_threadPool->start(new VideoFrameSender(image, this));
 }
 
 void MainWindow::on_btn_screenPen_clicked()
 {
     this->showMinimized();
     m_screenPen->showFullScreen();
+}
+
+void MainWindow::on_videoFrameSent(QImage image)
+{
+    // 本地窗口预览（由子线程回传图像）
+    ui->videoViewer->setPixmap(QPixmap::fromImage(image).scaled(ui->videoViewer->size(), Qt::KeepAspectRatio, Qt::FastTransformation));
 }
 
 void MainWindow::on_btn_audio_clicked()
@@ -459,16 +388,18 @@ void MainWindow::on_btn_audio_clicked()
         }
 
         int index = -1;
-        QAudioDeviceInfo curInput = availableDevices.at(ui->cb_device->currentIndex());
-        qDebug() << curInput.deviceName();
+        QAudioDeviceInfo curInput;
+        if(ui->cb_device->currentIndex() > index)
+        {
+            curInput = availableDevices.at(ui->cb_device->currentIndex());
+        }
         ui->cb_device->disconnect();
         ui->cb_device->clear();
 
         availableDevices = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
         if(availableDevices.isEmpty())
         {
-            ui->btn_audio->setDisabled(true);
-            ui->cb_device->setDisabled(true);
+            connect(ui->cb_device, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_device_currentIndexChanged(int)));
         }
         else
         {
@@ -480,15 +411,16 @@ void MainWindow::on_btn_audio_clicked()
                     index = i;
                 }
             }
-        }
 
-        if(index < 0)
-        {
-            index = 0;
+            if(index < 0)
+            {
+                index = 0;
+            }
+
+            connect(ui->cb_device, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_device_currentIndexChanged(int)));
+            ui->cb_device->setCurrentIndex(index);
+            emit ui->cb_device->currentIndexChanged(index);
         }
-        connect(ui->cb_device, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_device_currentIndexChanged(int)));
-        ui->cb_device->setCurrentIndex(index);
-        emit ui->cb_device->currentIndexChanged(index);
     }
 }
 
@@ -537,39 +469,14 @@ void MainWindow::on_volumeChanged(int value)
 void MainWindow::on_deviceReadyRead()
 {
     // 初始化音频数据包结构
-    videoPack vp;
-    memset(&vp, 0, sizeof(vp));
+    static AudioPack ap;
+    memset(&ap, 0, sizeof(ap));
 
     // 读入音频输入数据
-    vp.lens = static_cast<int>(m_audioDevice->read(vp.data, sizeof(vp.data)));
+    ap.len = static_cast<int>(m_audioDevice->read(ap.data, sizeof(ap.data)));
     // qDebug() << QString(vp.data).toUtf8();
 
-    qint64 res, sentBytes = 0, len = UDP_MAX_SIZE;
-
-    audio_socket->writeDatagram(QString("Begin").toUtf8(), QString("Begin").toUtf8().size(), groupAddress, audio_port);
-    audio_socket->waitForBytesWritten();
-
-    while(sentBytes < static_cast<int>(sizeof(vp)))
-    {
-        if(sentBytes + len > static_cast<int>(sizeof(vp)))
-        {
-            len = static_cast<int>(sizeof(vp)) - sentBytes;
-        }
-        else
-        {
-            len = UDP_MAX_SIZE;
-        }
-
-        res = audio_socket->writeDatagram(reinterpret_cast<const char *>(&vp) + sentBytes, len, groupAddress, audio_port);
-        if(res < 0)
-        {
-            qDebug() << "audio_socket: Write Datagram Failed!";
-            break;
-        }
-        audio_socket->waitForBytesWritten();
-
-        sentBytes += len;
-    }
+    audio_threadPool->start(new AudioPackSender((char *)&ap));
 }
 
 void MainWindow::on_mouseMove()

@@ -2,12 +2,12 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QUdpSocket>
-#include <QHostAddress>
 #include <QAudio>
 #include <QAudioOutput>
+#include <QUdpSocket>
 
-#define UDP_MAX_SIZE    1472    // UDP 数据包最大长度   * MTU = 1500，故数据包大小 1500 - 20（IP头）- 8（UDP头）
+#include "videoframereceiver.h"
+#include "audiopackreceiver.h"
 
 #define SAMPLE_RATE     44100   // 采样频率
 #define SAMPLE_SIZE     16      // 采样位数
@@ -34,17 +34,18 @@ private:
     QAudioFormat format;
     bool flag_audio;
 
-    QUdpSocket *video_socket;
     QUdpSocket *audio_socket;
     QHostAddress groupAddress;
-    quint16 video_port;
     quint16 audio_port;
 
-    struct videoPack
+    VideoFrameReceiver *video_receiver;
+    AudioPackReceiver *audio_receiver;
+
+    struct AudioPack
     {
         char data[1024 * 16];
-        int lens;
-    } vp;
+        int len;
+    };
 
     void initUdpConnections();
     void initOutputDevice();
@@ -52,17 +53,15 @@ private:
     void initConnections();
 
 private slots:
-    void on_videoReadyRead();
+    void on_videoFrameReceived(QImage);
     void on_btn_audio_clicked();
     void on_cb_device_currentIndexChanged(int index);
     void on_slider_volume_valueChanged(int value);
     void on_volumeChanged(int value);
-    void on_audioReadyRead();
-    void on_deviceReadyWrite();
+    void on_audioPackReceived(AudioPack);
 
 signals:
     void volumeChanged(int value);
-    void readyWrite();
 
 };
 

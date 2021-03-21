@@ -10,13 +10,13 @@
 #include <QAudioDeviceInfo>
 #include <QTimer>
 #include <QUdpSocket>
-#include <QHostAddress>
 
 #include "videosurface.h"
-
 #include "screenpen.h"
 
-#define UDP_MAX_SIZE    1472    // UDP 数据包最大长度   * MTU = 1500，故数据包大小 1500 - 20（IP头）- 8（UDP头）
+#include "videoframesender.h"
+#include "audiopacksender.h"
+#include <QThreadPool>
 
 #define SAMPLE_RATE     44100   // 采样频率
 #define SAMPLE_SIZE     16      // 采样位数
@@ -55,15 +55,16 @@ private:
     bool flag_audio;
 
     QUdpSocket *video_socket;
-    QUdpSocket *audio_socket;
     QHostAddress groupAddress;
     quint16 video_port;
-    quint16 audio_port;
 
-    struct videoPack
+    QThreadPool *video_threadPool;
+    QThreadPool *audio_threadPool;
+
+    struct AudioPack
     {
         char data[1024 * 16];   // 单个音频数据包大小设为 16K，音质 44K/128Kbps（？）
-        int lens;
+        int len;
     };
 
     void initUdpConnections();
@@ -80,6 +81,7 @@ private slots:
     void on_btn_screen_clicked();
     void on_timeOut();
     void on_btn_screenPen_clicked();
+    Q_INVOKABLE void on_videoFrameSent(QImage);     // Q_INVOKABLE 用来修饰成员函数，使其能够被 QMetaObject 调用（从 QRunnable 子线程中调用）
     void on_btn_audio_clicked();
     void on_cb_device_currentIndexChanged(int index);
     void on_slider_volume_valueChanged(int value);

@@ -18,7 +18,10 @@ public:
     ~ScreenPen();
 
 protected:
-    void paintEvent(QPaintEvent *);
+    void mousePressEvent(QMouseEvent *e) override;
+    void mouseReleaseEvent(QMouseEvent *) override;
+    void mouseMoveEvent(QMouseEvent *e) override;
+    void paintEvent(QPaintEvent *) override;
 
 private:
     Ui::ScreenPen *ui;
@@ -42,10 +45,6 @@ private:
     QBrush brush;           // 图形填充
     QColor bg_color;        // 背景颜色（白板或透明）
     bool flag_whiteboard;   // 白板模式
-
-    void mousePressEvent(QMouseEvent *e);
-    void mouseMoveEvent(QMouseEvent *e);
-    void mouseReleaseEvent(QMouseEvent *e);
 
     void drawCursor();
     void draw(QImage &image);

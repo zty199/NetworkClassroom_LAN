@@ -25,11 +25,15 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+        audiopackreceiver.cpp \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+        videoframereceiver.cpp
 
 HEADERS += \
-        mainwindow.h
+        audiopackreceiver.h \
+        mainwindow.h \
+        videoframereceiver.h
 
 FORMS += \
         mainwindow.ui

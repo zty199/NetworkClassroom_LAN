@@ -4,28 +4,30 @@
  A simple network classroom Demo based on UDP Multicast, including basic multimedia transmission. Only works in LAN.
 
 ## Realized Features
-* Support basic multimedia transmission based on UDP Multicast , including cam, screen share, mic, stereo mixer, etc.
+* Support basic multimedia transmission based on **UDP Multicast** , including cam, screen share, mic, stereo mixer, etc.
 
-* Support 1080p video transmission. (Temporarily limit to 720p because of HIGH CPU and Network consumption)
+* Support 1080p video transmission. (Temporarily limit to 720p because of HIGH **CPU** and **Network** consumption)
 
 * Support dynamic switch between different devices (cam / audio IO).
 
 * Support cam resolution adjustment.
 
-* Support volume adjustment. (Only current audio stream affected)
+* Support volume adjustment. (Only **current audio stream** affected, global device volume is controlled by system)
 
-* Support rescan available devices.
+* Support available devices rescan.
 
-*Support white board and screen mark when sharing screen.
+* Support white board and screen mark when sharing screen.
+
+* Support multithread data processing to avoid lags in GUI.
 
 ## Existing Issues
-* When using wireless cards, UDP Multicast is extremely Unreliable, both sending and receiving ends meet serious packet loss. Ethernet cards recommended.
+* When using wireless cards, UDP Multicast is extremely **Unreliable**, both sending and receiving ends meet serious packet loss. **Ethernet cards** recommended.
 
-* Video frames captured from cam and screen are directly encoded into JPEG by CPU(?), source resolution higher than 720p can cause serious lags on GUI.
+* Video frames captured from cam and screen are directly encoded into **JPEG** by CPU(?), source resolution higher than **720p** can cause serious lags on GUI.
 
 * Cam / Audio IO devices' names are Inaccurate on Linux (based on device drivers), most of audio IO devices shown in combobox don't work (not physically connected to any devices, just ports reserved).
 
-* Available devices list can't refresh in real time. Choosing one that is removed may cause crash, and new devices connected won't show up.
+* Available devices list can't refresh in real time. Choosing one that is removed may cause crash, and new devices connected won't show up unless corresponding function button is clicked.
 
 ## Future Plan
 File Transfer, Text Message Transmission, Student Sign-in, etc.
@@ -46,6 +48,14 @@ File Transfer, Text Message Transmission, Student Sign-in, etc.
 * [Qt多网卡组播问题解决方法](https://blog.csdn.net/sun_xf1/article/details/106423552)
 
 * [海天鹰屏幕笔](https://github.com/sonichy/HTYScreenPen)
+
+* [QT多线程的使用](https://www.cnblogs.com/coolcpp/p/qt-thread.html)
+
+* [Qt QRunnable的使用](https://blog.csdn.net/qq_43711348/article/details/103983857)
+
+* [QT编程问题小结（编译、多线程、UDP Socket等）](https://blog.csdn.net/rabbitjerry/article/details/70947807)
+
+* [QT基于UDP通信的多线程编程问题](https://blog.csdn.net/kamereon/article/details/49582617)
 
 ## Clarification
 This project is my graduation design for undergraduates. Only for study and communication.

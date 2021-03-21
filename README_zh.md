@@ -18,6 +18,8 @@
 
 * 支持屏幕共享时使用白板和屏幕标注。
 
+* 支持多线程收发数据，避免单线程造成 GUI 卡顿。
+
 ## 目前存在的问题
 * 使用无线网卡时，UDP 组播极为 **不稳定** ，收发数据包均存在严重丢包问题。推荐使用 **有线网卡** 。
 
@@ -25,7 +27,7 @@
 
 * Linux 下获取的音频/视频设备名称 **不明确** （由设备驱动决定），声音设备列表中大多数设备不可用。（多数是声卡硬件原始预留的端口，未连接任何物理设备）
 
-* 可用设备列表不能实时刷新，使用设备过程中移除设备可能造成程序崩溃，新插入设备不会自动识别。
+* 可用设备列表不能实时刷新，使用设备过程中移除设备可能造成程序崩溃，新插入设备不会自动识别，需要关闭对应功能后才能刷新设备列表。
 
 ## 后续计划实现的功能
 文件传输，文字通信，学生签到等。
@@ -46,6 +48,14 @@
 * [Qt多网卡组播问题解决方法](https://blog.csdn.net/sun_xf1/article/details/106423552)
 
 * [海天鹰屏幕笔](https://github.com/sonichy/HTYScreenPen)
+
+* [QT多线程的使用](https://www.cnblogs.com/coolcpp/p/qt-thread.html)
+
+* [Qt QRunnable的使用](https://blog.csdn.net/qq_43711348/article/details/103983857)
+
+* [QT编程问题小结（编译、多线程、UDP Socket等）](https://blog.csdn.net/rabbitjerry/article/details/70947807)
+
+* [QT基于UDP通信的多线程编程问题](https://blog.csdn.net/kamereon/article/details/49582617)
 
 ## 声明
 该项目为大学本科毕业设计，仅供学习交流使用。

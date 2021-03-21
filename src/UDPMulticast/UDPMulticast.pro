@@ -25,14 +25,18 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+        audiopacksender.cpp \
         main.cpp \
         mainwindow.cpp \
         screenpen.cpp \
+        videoframesender.cpp \
         videosurface.cpp
 
 HEADERS += \
+        audiopacksender.h \
         mainwindow.h \
         screenpen.h \
+        videoframesender.h \
         videosurface.h
 
 FORMS += \

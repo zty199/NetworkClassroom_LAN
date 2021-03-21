@@ -50,6 +50,11 @@ void ScreenPen::mousePressEvent(QMouseEvent *e)
     }
 }
 
+void ScreenPen::mouseReleaseEvent(QMouseEvent *)
+{
+    image = image_temp;
+}
+
 void ScreenPen::mouseMoveEvent(QMouseEvent *e)
 {
     if(e->buttons() & Qt::LeftButton)
@@ -60,7 +65,7 @@ void ScreenPen::mouseMoveEvent(QMouseEvent *e)
         }
         endPnt = e->pos();
 
-        if (draw_type == BRUSH_DRAW)
+        if(draw_type == BRUSH_DRAW)
         {
             image = image_temp;
         }
@@ -70,12 +75,6 @@ void ScreenPen::mouseMoveEvent(QMouseEvent *e)
         }
         draw(image_temp);
     }
-}
-
-void ScreenPen::mouseReleaseEvent(QMouseEvent *e)
-{
-    Q_UNUSED(e)
-    image = image_temp;
 }
 
 void ScreenPen::paintEvent(QPaintEvent *)
