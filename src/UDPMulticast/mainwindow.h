@@ -5,18 +5,18 @@
 #include <QCamera>
 #include <QCameraInfo>
 #include <QScreen>
+#include <QTimer>
 #include <QAudio>
 #include <QAudioInput>
 #include <QAudioDeviceInfo>
-#include <QTimer>
 #include <QUdpSocket>
+#include <QThreadPool>
 
 #include "videosurface.h"
 #include "screenpen.h"
 
 #include "videoframesender.h"
 #include "audiopacksender.h"
-#include <QThreadPool>
 
 #define SAMPLE_RATE     44100   // 采样频率
 #define SAMPLE_SIZE     16      // 采样位数

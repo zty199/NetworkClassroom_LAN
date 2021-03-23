@@ -10,7 +10,7 @@ class AudioPackSender : public QRunnable
 {
 public:
     explicit AudioPackSender(char *ap);
-    ~AudioPackSender();
+    ~AudioPackSender() override;
 
 protected:
     void run() override;

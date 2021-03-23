@@ -27,7 +27,7 @@ void AudioPackReceiver::run()
 
 void AudioPackReceiver::on_audioReadyRead()
 {
-    qint32 res;
+    qint64 res;
 
     while(audio_socket->hasPendingDatagrams())
     {

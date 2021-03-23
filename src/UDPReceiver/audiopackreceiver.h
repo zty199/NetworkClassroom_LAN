@@ -9,7 +9,7 @@ class AudioPackReceiver : public QThread
     Q_OBJECT
 public:
     AudioPackReceiver();
-    ~AudioPackReceiver();
+    ~AudioPackReceiver() override;
 
 protected:
     void run() override;

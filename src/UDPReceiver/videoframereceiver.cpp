@@ -30,7 +30,7 @@ void VideoFrameReceiver::run()
 
 void VideoFrameReceiver::on_videoReadyRead()
 {
-    qint32 res;
+    qint64 res;
 
     while(video_socket->hasPendingDatagrams())
     {

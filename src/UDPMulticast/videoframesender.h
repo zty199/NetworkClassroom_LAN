@@ -11,7 +11,7 @@ class VideoFrameSender : public QRunnable
 {
 public:
     explicit VideoFrameSender(QImage image, QObject *parent = nullptr);
-    ~VideoFrameSender();
+    ~VideoFrameSender() override;
 
 protected:
     void run() override;

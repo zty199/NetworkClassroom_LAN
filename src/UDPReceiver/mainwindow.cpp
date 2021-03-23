@@ -108,7 +108,6 @@ void MainWindow::on_btn_audio_clicked()
     {
         // 仅静音当前音频流
         ui->slider_volume->setValue(curVolume);
-        emit ui->slider_volume->valueChanged(curVolume);
         qDebug() << "Audio Share Unmuted!";
         flag_audio = true;
     }
@@ -116,8 +115,6 @@ void MainWindow::on_btn_audio_clicked()
     {
         curVolume = ui->slider_volume->value();
         ui->slider_volume->setValue(0);
-        emit ui->slider_volume->valueChanged(0);
-
         qDebug() << "Audio Share Muted!";
         flag_audio = false;
 
@@ -137,11 +134,7 @@ void MainWindow::on_btn_audio_clicked()
         ui->cb_device->clear();
 
         availableDevices = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
-        if(availableDevices.isEmpty())
-        {
-            connect(ui->cb_device, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_device_currentIndexChanged(int)));
-        }
-        else
+        if(!availableDevices.isEmpty())
         {
             for(int i = 0; i < availableDevices.size(); i++)
             {
@@ -157,15 +150,34 @@ void MainWindow::on_btn_audio_clicked()
                 index = 0;
             }
 
-            connect(ui->cb_device, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_device_currentIndexChanged(int)));
             ui->cb_device->setCurrentIndex(index);
-            emit ui->cb_device->currentIndexChanged(index);
         }
+
+        connect(ui->cb_device, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_device_currentIndexChanged(int)));
     }
 }
 
 void MainWindow::on_cb_device_currentIndexChanged(int index)
 {
+    /*
+     * 测试中发现，Linux 系统中 alsa_output 等音频输出设备不支持调节音量
+     * 调节音量提示 QAudioOutput(pulseaudio): pa_stream_begin_write, error = Invalid argument
+     * 再次选择该设备后会导致程序卡死
+     */
+#ifdef Q_OS_LINUX
+    if(!ui->cb_device->currentText().indexOf("alsa_output"))
+    {
+        ui->btn_audio->setDisabled(true);
+        ui->slider_volume->setDisabled(true);
+        ui->volume->setDisabled(true);
+    }
+    else
+    {
+        ui->btn_audio->setEnabled(true);
+        ui->slider_volume->setEnabled(true);
+        ui->volume->setEnabled(true);
+    }
+#endif
     if(flag_audio)
     {
         m_audioOutput->stop();
@@ -188,6 +200,14 @@ void MainWindow::on_cb_device_currentIndexChanged(int index)
     if(flag_audio)
     {
         m_audioDevice = m_audioOutput->start();
+#ifdef Q_OS_LINUX
+        if(ui->cb_device->currentText().indexOf("alsa_output"))
+        {
+#endif
+            m_audioOutput->setVolume(qreal(ui->slider_volume->value()) / 100);
+#ifdef Q_OS_LINUX
+        }
+#endif
     }
 
     qDebug() << "Output Device: " << info.deviceName();
@@ -199,6 +219,12 @@ void MainWindow::on_slider_volume_valueChanged(int value)
     // 滑动条调节音频输出设备音量（仅调节音频流音量而非设备全局音量），范围 0.0 ~ 1.0
     m_audioOutput->setVolume(qreal(value) / 100);
     emit this->volumeChanged(value);
+
+    // 音量调节则解除静音
+    if(!flag_audio)
+    {
+        flag_audio = true;
+    }
 }
 
 void MainWindow::on_volumeChanged(int value)

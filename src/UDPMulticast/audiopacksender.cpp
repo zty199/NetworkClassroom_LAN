@@ -22,7 +22,7 @@ void AudioPackSender::run()
     audio_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);                  // 设置套接字属性
     audio_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024 * 64);  // 缓冲区最大存储 4个 数据包（单个 16K）
 
-    qint32 res;
+    qint64 res;
     qint32 dataLength = ap->len;
     uchar *dataBuffer = (uchar *)ap->data;
 

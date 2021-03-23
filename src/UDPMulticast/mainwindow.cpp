@@ -209,11 +209,7 @@ void MainWindow::on_btn_camera_clicked()
         ui->cb_camera->clear();
 
         availableCameras = QCameraInfo::availableCameras();
-        if(availableCameras.isEmpty())
-        {
-            connect(ui->cb_camera, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_camera_currentIndexChanged(int)));
-        }
-        else
+        if(!availableCameras.isEmpty())
         {
             // 记录当前设备选项
             for(int i = 0; i < availableCameras.size(); i++)
@@ -230,10 +226,10 @@ void MainWindow::on_btn_camera_clicked()
                 index = 0;
             }
 
-            connect(ui->cb_camera, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_camera_currentIndexChanged(int)));
             ui->cb_camera->setCurrentIndex(index);
-            emit ui->cb_camera->currentIndexChanged(index);
         }
+
+        connect(ui->cb_camera, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_camera_currentIndexChanged(int)));
     }
 }
 
@@ -299,11 +295,11 @@ void MainWindow::on_videoFrameChanged(QVideoFrame frame)
     oldImage = image;
     */
 
-    // 将 QImage 对象上下镜像   * Linux 似乎不需要......
+    // 将 QImage 对象上下镜像   * Linux 不需要......
 #ifdef Q_OS_WINDOWS
     image = image.mirrored(false, true);    // 左右/上下镜像
 #elif defined Q_OS_LINUX
-    image = image.mirrored(false, false);   // 左右/上下镜像
+    image = image.mirrored(false, false);
 #endif
     image.scaled(image.size().boundedTo(QSize(1280, 720)), Qt::KeepAspectRatio, Qt::FastTransformation); // 分辨率高于 720p 则压缩
 
@@ -377,7 +373,6 @@ void MainWindow::on_btn_audio_clicked()
         // 终止音频传输时，要先断开设备输入输出流，再停止设备，避免程序异常退出
         m_audioDevice->disconnect();
         m_audioInput->stop();
-
         qDebug() << "Audio Share Stopped!";
         flag_audio = false;
 
@@ -397,11 +392,7 @@ void MainWindow::on_btn_audio_clicked()
         ui->cb_device->clear();
 
         availableDevices = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
-        if(availableDevices.isEmpty())
-        {
-            connect(ui->cb_device, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_device_currentIndexChanged(int)));
-        }
-        else
+        if(!availableDevices.isEmpty())
         {
             for(int i = 0; i < availableDevices.size(); i++)
             {
@@ -417,10 +408,10 @@ void MainWindow::on_btn_audio_clicked()
                 index = 0;
             }
 
-            connect(ui->cb_device, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_device_currentIndexChanged(int)));
             ui->cb_device->setCurrentIndex(index);
-            emit ui->cb_device->currentIndexChanged(index);
         }
+
+        connect(ui->cb_device, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_device_currentIndexChanged(int)));
     }
 }
 
@@ -446,6 +437,7 @@ void MainWindow::on_cb_device_currentIndexChanged(int index)
     if(flag_audio)
     {
         m_audioDevice = m_audioInput->start();
+        m_audioInput->setVolume(qreal(ui->slider_volume->value()) / 100);
         connect(m_audioDevice, SIGNAL(readyRead()), this, SLOT(on_deviceReadyRead()));
     }
 

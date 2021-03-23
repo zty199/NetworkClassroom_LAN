@@ -15,7 +15,7 @@ class ScreenPen : public QWidget
 
 public:
     explicit ScreenPen(QWidget *parent = nullptr);
-    ~ScreenPen();
+    ~ScreenPen() override;
 
 protected:
     void mousePressEvent(QMouseEvent *e) override;

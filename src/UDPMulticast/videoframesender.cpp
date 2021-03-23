@@ -33,7 +33,7 @@ void VideoFrameSender::run()
     buffer.open(QIODevice::ReadWrite);
     image->save(&buffer, "JPEG");
 
-    qint32 res;
+    qint64 res;
     quint32 dataLength = buffer.data().size();
     uchar *dataBuffer = (uchar *)buffer.data().data();
 

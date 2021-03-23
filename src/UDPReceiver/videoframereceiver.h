@@ -11,7 +11,7 @@ class VideoFrameReceiver : public QThread
 
 public:
     VideoFrameReceiver();
-    ~VideoFrameReceiver();
+    ~VideoFrameReceiver() override;
 
 protected:
     void run() override;
