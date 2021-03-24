@@ -5,6 +5,7 @@
 #include <QCamera>
 #include <QCameraInfo>
 #include <QScreen>
+#include <QLabel>
 #include <QTimer>
 #include <QAudio>
 #include <QAudioInput>
@@ -44,6 +45,7 @@ private:
     bool flag_camera;
 
     QScreen *m_screen;
+    QLabel *m_cursor;
     QTimer *m_timer;
     ScreenPen *m_screenPen;
     bool flag_screen;

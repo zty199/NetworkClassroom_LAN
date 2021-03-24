@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_viewFinder(new VideoSurface(this)),
     flag_camera(false),
     m_screen(QApplication::primaryScreen()),
+    m_cursor(new QLabel),
     m_timer(new QTimer(this)),
     m_screenPen(new ScreenPen),
     flag_screen(false),
@@ -116,8 +117,19 @@ void MainWindow::initInputDevice()
 
 void MainWindow::initUI()
 {
+    // 初始化鼠标标记
+    m_cursor->setWindowFlag(Qt::FramelessWindowHint, true);
+    m_cursor->setWindowFlag(Qt::WindowStaysOnTopHint, true);
+    // m_cursor->setAttribute(Qt::WA_TranslucentBackground, true);
+    m_cursor->resize(5, 5);
+    m_cursor->setAutoFillBackground(true);
+    m_cursor->setStyleSheet("background-color: rgb(255, 255, 255);");
+    m_cursor->hide();
+
+    // 初始化屏幕画笔
     m_screenPen->hide();                    // 启动时不显示屏幕画笔
     ui->btn_screenPen->setDisabled(true);   // 禁用屏幕画笔按钮
+
     ui->cb_resolution->setDisabled(true);   // 禁用摄像头分辨率下拉框（摄像头设备启动后才可以使用）
 
     // 初始化主界面设备列表
@@ -137,7 +149,7 @@ void MainWindow::initConnections()
     connect(m_viewFinder, SIGNAL(videoFrameChanged(QVideoFrame)), this, SLOT(on_videoFrameChanged(QVideoFrame)));
     connect(m_timer, SIGNAL(timeout()), this, SLOT(on_timeOut()));
     connect(this, SIGNAL(volumeChanged(int)), this, SLOT(on_volumeChanged(int)));
-    // connect(m_timer, SIGNAL(timeout()), this, SLOT(on_mouseMove()));    // 屏幕共享时标记鼠标位置
+    connect(m_timer, SIGNAL(timeout()), this, SLOT(on_mouseMove()));    // 屏幕共享时标记鼠标位置
 }
 
 void MainWindow::initCamera()
@@ -301,8 +313,16 @@ void MainWindow::on_videoFrameChanged(QVideoFrame frame)
 #elif defined Q_OS_LINUX
     image = image.mirrored(false, false);
 #endif
-    image.scaled(image.size().boundedTo(QSize(1280, 720)), Qt::KeepAspectRatio, Qt::FastTransformation); // 分辨率高于 720p 则压缩
+    image = image.scaled(image.size().boundedTo(QSize(1920, 1080)), Qt::KeepAspectRatio, Qt::SmoothTransformation); // 分辨率高于 1080p 则压缩
 
+    if(image.size().height() < 720)
+    {
+        video_threadPool->setMaxThreadCount(1);
+    }
+    else
+    {
+        video_threadPool->setMaxThreadCount(2);
+    }
     video_threadPool->start(new VideoFrameSender(image, this));
 }
 
@@ -312,6 +332,7 @@ void MainWindow::on_btn_screen_clicked()
     {
         ui->btn_screenPen->setEnabled(true);    // 启用屏幕画笔按钮
         m_timer->start(15);     // 每隔 15ms 触发（约等于 60Hz 刷新率）
+        m_cursor->show();
         qDebug() << "Screen Share Started!";
         flag_screen = true;
         flag_camera = true;
@@ -320,6 +341,8 @@ void MainWindow::on_btn_screen_clicked()
     else
     {
         video_socket->writeDatagram(QString("Stop").toUtf8(), QString("Stop").toUtf8().size(), groupAddress, video_port);
+
+        m_cursor->hide();
         m_timer->stop();
         qDebug() << "Screen Share Stopped!";
         ui->videoViewer->clear();
@@ -342,8 +365,16 @@ void MainWindow::on_timeOut()
     oldImage = image;
     */
 
-    image.scaled(image.size().boundedTo(QSize(1280, 720)), Qt::KeepAspectRatio, Qt::FastTransformation);
+    image = image.scaled(image.size().boundedTo(QSize(1920, 1080)), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
+    if(image.size().height() < 720)
+    {
+        video_threadPool->setMaxThreadCount(1);
+    }
+    else
+    {
+        video_threadPool->setMaxThreadCount(2);
+    }
     video_threadPool->start(new VideoFrameSender(image, this));
 }
 
@@ -474,20 +505,12 @@ void MainWindow::on_deviceReadyRead()
 void MainWindow::on_mouseMove()
 {
     // 由于屏幕共享看不到鼠标，尝试标记鼠标位置
-    static QLabel label;
-    label.setWindowFlag(Qt::FramelessWindowHint, true);
-    label.resize(20, 20);
-    label.setAutoFillBackground(true);
-    label.setStyleSheet("background-color: rgb(0, 0, 0);");
-    label.show();
-
     static QPoint oldPoint;
     QPoint point = QCursor::pos(); // 获取鼠标的绝对位置
     if(oldPoint != point)
     {
-        label.move(point.x() + 1, point.y() + 1);
-        qDebug() << "鼠标移动";
-        qDebug() << point;
+        m_cursor->move(point.x() + 1, point.y() + 1);
+        // qDebug() << "鼠标移动 " << point;
         oldPoint = point;
     }
 }

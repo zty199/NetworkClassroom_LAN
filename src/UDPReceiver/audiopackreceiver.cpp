@@ -40,24 +40,38 @@ void AudioPackReceiver::on_audioReadyRead()
             return;
         }
 
-        static quint32 num = 1;
-        static quint32 size = 0;
+        static qint32 num = 1;
+        static qint32 size = 0;
+        static qint64 timestamp = 0;
         static AudioPack ap;
 
         PackageHeader *packageHead = (PackageHeader *)byteArray.data();
-        if(packageHead->uDataPackageCurrIndex == 0)
+        if(packageHead->DataPackageCurrIndex == 0)
         {
+            /*
+            ap.len = size;
+            emit audioPackReceived(ap);
+            */
+
             // qDebug() << "New Packet Arrived!";
             num = 1;
             size = 0;
+            timestamp = packageHead->DataPackageTimeStamp;
             memset(&ap, 0, sizeof(ap));
             return;
         }
 
-        num++;
-        size += packageHead->uTransPackageSize - packageHead->uTransPackageHdrSize;
+        /*
+        if(packageHead->DataPackageTimeStamp < timestamp)
+        {
+            return;
+        }
+        */
 
-        if(size > packageHead->uDataSize)
+        num++;
+        size += packageHead->TransPackageSize - packageHead->TransPackageHdrSize;
+
+        if(size > packageHead->DataSize)
         {
             // qDebug() << "packet too big 1";
             num = 1;
@@ -66,7 +80,7 @@ void AudioPackReceiver::on_audioReadyRead()
             return;
         }
 
-        if(packageHead->uDataPackageOffset > 1024 * 16)
+        if(packageHead->DataPackageOffset > 1024 * 16)
         {
             // qDebug() << "packet too big 2";
             num = 1;
@@ -75,12 +89,12 @@ void AudioPackReceiver::on_audioReadyRead()
             return;
         }
 
-        memcpy(ap.data + packageHead->uDataPackageOffset, byteArray.data() + packageHead->uTransPackageHdrSize,
-               packageHead->uTransPackageSize - packageHead->uTransPackageHdrSize);
+        memcpy(ap.data + packageHead->DataPackageOffset, byteArray.data() + packageHead->TransPackageHdrSize,
+               packageHead->TransPackageSize - packageHead->TransPackageHdrSize);
 
-        if((packageHead->uDataPackageCurrIndex == packageHead->uDataPackageNum) && (size == packageHead->uDataSize))
+        if((packageHead->DataPackageCurrIndex == packageHead->DataPackageNum) && (size == packageHead->DataSize))
         {
-            ap.len = packageHead->uDataSize;
+            ap.len = packageHead->DataSize;
             emit audioPackReceived(ap);
 
             num = 1;

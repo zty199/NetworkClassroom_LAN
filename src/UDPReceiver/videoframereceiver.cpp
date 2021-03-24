@@ -50,24 +50,42 @@ void VideoFrameReceiver::on_videoReadyRead()
             return;
         }
 
-        static quint32 num = 1;
-        static quint32 size = 0;
+        static qint32 num = 1;
+        static qint32 size = 0;
+        static qint64 timestamp = 0;
         static VideoPack vp;
 
         PackageHeader *packageHead = (PackageHeader *)byteArray.data();
-        if(packageHead->uDataPackageCurrIndex == 0)
+        if(packageHead->DataPackageCurrIndex == 0)
         {
+            /*
+            vp.len = size;
+            QImage image;
+            if(image.loadFromData(vp.data, vp.len, "JPEG"))
+            {
+                emit videoFrameReceived(image);
+            }
+            */
+
             // qDebug() << "New Image Arrived!";
             num = 1;
             size = 0;
+            timestamp = packageHead->DataPackageTimeStamp;
             memset(&vp, 0, sizeof(vp));
             return;
         }
 
-        num++;
-        size += packageHead->uTransPackageSize - packageHead->uTransPackageHdrSize;
+        /*
+        if(packageHead->DataPackageTimeStamp < timestamp)
+        {
+            return;
+        }
+        */
 
-        if(size > packageHead->uDataSize)
+        num++;
+        size += packageHead->TransPackageSize - packageHead->TransPackageHdrSize;
+
+        if(size > packageHead->DataSize)
         {
             // qDebug() << "image too big 1";
             num = 1;
@@ -76,7 +94,7 @@ void VideoFrameReceiver::on_videoReadyRead()
             return;
         }
 
-        if(packageHead->uDataPackageOffset > 1920 * 1080 * 4)
+        if(packageHead->DataPackageOffset > 1920 * 1080 * 4)
         {
             // qDebug() << "image too big 2";
             num = 1;
@@ -85,12 +103,12 @@ void VideoFrameReceiver::on_videoReadyRead()
             return;
         }
 
-        memcpy(vp.data + packageHead->uDataPackageOffset, byteArray.data() + packageHead->uTransPackageHdrSize,
-               packageHead->uTransPackageSize - packageHead->uTransPackageHdrSize);
+        memcpy(vp.data + packageHead->DataPackageOffset, byteArray.data() + packageHead->TransPackageHdrSize,
+               packageHead->TransPackageSize - packageHead->TransPackageHdrSize);
 
-        if((packageHead->uDataPackageCurrIndex == packageHead->uDataPackageNum) && (size == packageHead->uDataSize))
+        if((packageHead->DataPackageCurrIndex == packageHead->DataPackageNum) && (size == packageHead->DataSize))
         {
-            vp.len = packageHead->uDataSize;
+            vp.len = packageHead->DataSize;
             QImage image;
             if(image.loadFromData(vp.data, vp.len, "JPEG"))
             {

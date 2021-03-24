@@ -96,7 +96,7 @@ void MainWindow::on_videoFrameReceived(QImage image)
     }
     else
     {
-        ui->videoViewer->setPixmap(QPixmap::fromImage(image).scaled(ui->videoViewer->size(), Qt::KeepAspectRatio, Qt::FastTransformation));
+        ui->videoViewer->setPixmap(QPixmap::fromImage(image).scaled(ui->videoViewer->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
     }
 }
 

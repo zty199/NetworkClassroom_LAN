@@ -23,12 +23,13 @@ private:
 
     struct PackageHeader
     {
-        quint32 uTransPackageHdrSize;
-        quint32 uTransPackageSize;
-        quint32 uDataSize;
-        quint32 uDataPackageNum;
-        quint32 uDataPackageCurrIndex;
-        quint32 uDataPackageOffset;
+        qint32 TransPackageHdrSize;
+        qint32 TransPackageSize;
+        qint32 DataSize;
+        qint32 DataPackageNum;
+        qint32 DataPackageCurrIndex;
+        qint32 DataPackageOffset;
+        qint64 DataPackageTimeStamp;
     };
 
     struct VideoPack

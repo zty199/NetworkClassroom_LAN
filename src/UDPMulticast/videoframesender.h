@@ -27,12 +27,13 @@ private:
     // UDP 包头
     struct PackageHeader
     {
-        quint32 uTransPackageHdrSize;      // 包头大小(sizeof(PackageHeader))
-        quint32 uTransPackageSize;         // 当前包头的大小(sizeof(PackageHeader) + 当前数据包长度)
-        quint32 uDataSize;                 // 数据的总大小
-        quint32 uDataPackageNum;           // 数据被分成包的个数
-        quint32 uDataPackageCurrIndex;     // 数据包当前的帧号
-        quint32 uDataPackageOffset;        // 数据包在整个数据中的偏移
+        qint32 TransPackageHdrSize;     // 包头大小(sizeof(PackageHeader))
+        qint32 TransPackageSize;        // 当前包头的大小(sizeof(PackageHeader) + 当前数据包长度)
+        qint32 DataSize;                // 数据的总大小
+        qint32 DataPackageNum;          // 数据被分成包的个数
+        qint32 DataPackageCurrIndex;    // 数据包当前的帧号
+        qint32 DataPackageOffset;       // 数据包在整个数据中的偏移
+        qint64 DataPackageTimeStamp;    // 数据包时间戳
     };
 
 };
