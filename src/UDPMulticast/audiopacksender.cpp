@@ -2,15 +2,23 @@
 
 #include <QDateTime>
 
-AudioPackSender::AudioPackSender(char *ap)
+AudioPackSender::AudioPackSender(QNetworkInterface interface,
+                                 QHostAddress address,
+                                 AudioPack ap) :
+    interface(interface),
+    address(address)
 {
     this->ap = new AudioPack;
-    memcpy(this->ap, ap, sizeof(*(this->ap)));
+    memcpy(this->ap->data, ap.data, sizeof(ap.data));
+    this->ap->len = ap.len;
     setAutoDelete(true);
 }
 
 AudioPackSender::~AudioPackSender()
 {
+    audio_socket->waitForBytesWritten();
+    audio_socket->flush();
+    audio_socket->close();
     delete audio_socket;
     delete ap;
 }
@@ -21,7 +29,11 @@ void AudioPackSender::run()
     audio_port = 8889;
 
     audio_socket = new QUdpSocket;
-    audio_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);                  // 设置套接字属性
+    audio_socket->bind(address, audio_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
+    audio_socket->setMulticastInterface(interface);
+    audio_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+    audio_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);
+    audio_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);
     audio_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024 * 64);  // 缓冲区最大存储 4个 数据包（单个 16K）
 
     qint64 res;

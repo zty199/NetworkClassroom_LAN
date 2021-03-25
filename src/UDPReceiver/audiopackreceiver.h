@@ -4,6 +4,8 @@
 #include <QThread>
 #include <QUdpSocket>
 
+#include "util.h"
+
 class AudioPackReceiver : public QThread
 {
     Q_OBJECT
@@ -18,23 +20,6 @@ private:
     QUdpSocket *audio_socket;
     QHostAddress groupAddress;
     quint16 audio_port;
-
-    struct PackageHeader
-    {
-        qint32 TransPackageHdrSize;
-        qint32 TransPackageSize;
-        qint32 DataSize;
-        qint32 DataPackageNum;
-        qint32 DataPackageCurrIndex;
-        qint32 DataPackageOffset;
-        qint64 DataPackageTimeStamp;
-    };
-
-    struct AudioPack
-    {
-        char data[1024 * 16];
-        int len;
-    };
 
 private slots:
     void on_audioReadyRead();

@@ -3,8 +3,15 @@
 #include <QBuffer>
 #include <QDateTime>
 
-VideoFrameSender::VideoFrameSender(QImage image, QObject *parent) :
-    parent(parent)
+#include <QThread>
+
+VideoFrameSender::VideoFrameSender(QNetworkInterface interface,
+                                   QHostAddress address,
+                                   QImage image,
+                                   QObject *parent) :
+    parent(parent),
+    interface(interface),
+    address(address)
 {
     this->image = new QImage(image);
     setAutoDelete(true);
@@ -12,12 +19,16 @@ VideoFrameSender::VideoFrameSender(QImage image, QObject *parent) :
 
 VideoFrameSender::~VideoFrameSender()
 {
+    video_socket->waitForBytesWritten();
+    video_socket->flush();
+    video_socket->close();
     delete video_socket;
     delete image;
 }
 
 void VideoFrameSender::run()
 {
+    // 回传图像至主线程（避免 GUI 卡顿）
     QMetaObject::invokeMethod(parent, "on_videoFrameSent", Q_ARG(QImage, *image));
 
     groupAddress = QHostAddress("239.0.0.1");
@@ -25,15 +36,19 @@ void VideoFrameSender::run()
 
     // 初始化 video_socket
     video_socket = new QUdpSocket;
-    video_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);                          // 设置套接字属性
-    video_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1920 * 1080 * 16);   // 缓冲区最大存储 4 张 1080p 位图
+    video_socket->bind(address, video_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);   // 绑定组播地址端口
+    video_socket->setMulticastInterface(interface);                                                     // 设置组播网卡
+    video_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);                                  // 尝试优化套接字以降低延迟
+    video_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);                              // 设置 TTL 属性
+    video_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);                         // 本机禁止接收
+    video_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1920 * 1080 * 16);       // 缓冲区最大存储 4 张 1080p 位图
 
     // 暂存帧图像
     QByteArray byteArray;
     QBuffer buffer(&byteArray);
     buffer.open(QIODevice::ReadWrite);
     image->save(&buffer, "JPEG");
-    qDebug() << buffer.size();
+    buffer.close();
 
     qint64 res;
     qint32 dataLength = buffer.data().size();

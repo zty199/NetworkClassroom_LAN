@@ -1,35 +1,32 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-// #include <QNetworkInterface>
 #include <QBuffer>
-#include <QEvent>
-#include <QMouseEvent>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
+    m_startup(new StartUpDialog(this)),
+    command_timer(new QTimer(this)),
+    stuNum(0),
     availableCameras(QCameraInfo::availableCameras()),
     m_camera(new QCamera(QCameraInfo::defaultCamera(), this)),
     m_viewFinder(new VideoSurface(this)),
     flag_camera(false),
     m_screen(QApplication::primaryScreen()),
     m_cursor(new QLabel),
-    m_timer(new QTimer(this)),
+    screen_timer(new QTimer(this)),
     m_screenPen(new ScreenPen),
     flag_screen(false),
     availableDevices(QAudioDeviceInfo::availableDevices(QAudio::AudioInput)),
     flag_audio(false),
-    video_socket(new QUdpSocket(this)),
+    command_socket(new QUdpSocket(this)),
     groupAddress("239.0.0.1"),
-    video_port(8888),
+    command_port(8887),
     video_threadPool(new QThreadPool(this)),
     audio_threadPool(new QThreadPool(this))
 {
     ui->setupUi(this);
-
-    // 初始化 UDP 连接
-    initUdpConnections();
 
     // 初始化音频输入设备
     initInputDevice();
@@ -44,53 +41,50 @@ MainWindow::MainWindow(QWidget *parent) :
     m_camera->setViewfinder(m_viewFinder);
 
     // 初始化计时器状态（用于桌面共享）
-    m_timer->stop();
+    screen_timer->stop();
 
     qDebug() << "Initialization Finished!";
-
-    video_threadPool->setMaxThreadCount(2);
-    audio_threadPool->setMaxThreadCount(1);
 }
 
 MainWindow::~MainWindow()
 {
-    video_socket->writeDatagram(QString("Stop").toUtf8().data(), QString("Stop").toUtf8().size(), groupAddress, video_port);
+    delete video_threadPool;
+    delete audio_threadPool;
+    delete ui;
+}
+
+void MainWindow::closeEvent(QCloseEvent *)
+{
+    if(flag_camera)
+    {
+        emit ui->btn_camera->clicked();
+    }
+    if(flag_screen)
+    {
+        emit ui->btn_screen->clicked();
+    }
+    if(flag_audio)
+    {
+        emit ui->btn_audio->clicked();
+    }
+
     video_threadPool->clear();
     video_threadPool->waitForDone();
-    delete video_threadPool;
 
     audio_threadPool->clear();
     audio_threadPool->waitForDone();
-    delete audio_threadPool;
 
-    flag_camera = true;
-    emit ui->btn_camera->clicked();
-    delete m_camera;
-
-    delete ui;
+    command_socket->writeDatagram(QString("Stop").toUtf8().data(), QString("Stop").toUtf8().size(), groupAddress, command_port);
 }
 
 void MainWindow::initUdpConnections()
 {
-    // 检查网卡是否支持 UDP 组播
-    /*
-    QNetworkInterface intf;
-    QList<QNetworkInterface> list = QNetworkInterface::allInterfaces();  // 获取系统里所有的网卡对象;
-    foreach(intf, list)
-    {
-        // 找出处在执行状态，能支持组播的网卡对象
-        if((intf.flags() & QNetworkInterface::IsRunning) && (intf.flags() & QNetworkInterface::CanMulticast))
-        {
-            break;
-        }
-    }
-    qDebug() << intf.name();
-    */
-
-    // video_socket->bind(QHostAddress::AnyIPv4, video_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);  // 绑定广播地址端口（发送端可以不绑定）
-    // video_socket->setMulticastInterface(intf);                                   // 设置组播网卡
-    video_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);          // 设置套接字属性
-    // video_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);  // 禁止本机接收
+    command_socket->bind(m_address, command_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress); // 绑定组播地址端口
+    command_socket->setMulticastInterface(m_interface);                                                     // 设置组播网卡
+    command_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);                                    // 尝试优化套接字以降低延迟
+    command_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);                                // 设置套接字属性
+    command_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);                           // 本机禁止接收
+    emit command_socket->readyRead();
 }
 
 void MainWindow::initInputDevice()
@@ -130,7 +124,15 @@ void MainWindow::initUI()
     m_screenPen->hide();                    // 启动时不显示屏幕画笔
     ui->btn_screenPen->setDisabled(true);   // 禁用屏幕画笔按钮
 
-    ui->cb_resolution->setDisabled(true);   // 禁用摄像头分辨率下拉框（摄像头设备启动后才可以使用）
+    // 初始化屏幕分辨率和刷新率下拉框
+    ui->cb_screenRes->addItem("360P", QSize(640, 360));
+    ui->cb_screenRes->addItem("720P", QSize(1280, 720));
+    ui->cb_screenRes->addItem("1080P (Not Recommended)", QSize(1920, 1080));
+    ui->cb_screenHz->addItem("30Hz", 30);
+    ui->cb_screenHz->addItem("60Hz", 15);
+
+    // 禁用摄像头分辨率下拉框（摄像头设备启动后才可以使用）
+    ui->cb_camRes->setDisabled(true);
 
     // 初始化主界面设备列表
     foreach(const QCameraInfo &camera, availableCameras)
@@ -142,14 +144,22 @@ void MainWindow::initUI()
     {
         ui->cb_device->addItem(device.deviceName(), availableDevices.indexOf(device));
     }
+
+    // 隐藏主界面并显示启动界面
+    this->hide();
+    m_startup->show();
 }
 
 void MainWindow::initConnections()
 {
+    connect(m_startup, SIGNAL(multicastReady(QNetworkInterface,QHostAddress)), this, SLOT(on_multicastReady(QNetworkInterface,QHostAddress)));
+    connect(m_startup, SIGNAL(startUp()), this, SLOT(on_startUp()));
+    connect(command_timer, SIGNAL(timeout()), this, SLOT(on_commandTimeOut()));
+    connect(command_socket, SIGNAL(readyRead()), this, SLOT(on_commandReadyRead()));
     connect(m_viewFinder, SIGNAL(videoFrameChanged(QVideoFrame)), this, SLOT(on_videoFrameChanged(QVideoFrame)));
-    connect(m_timer, SIGNAL(timeout()), this, SLOT(on_timeOut()));
+    connect(screen_timer, SIGNAL(timeout()), this, SLOT(on_screenTimeOut()));
     connect(this, SIGNAL(volumeChanged(int)), this, SLOT(on_volumeChanged(int)));
-    connect(m_timer, SIGNAL(timeout()), this, SLOT(on_mouseMove()));    // 屏幕共享时标记鼠标位置
+    connect(screen_timer, SIGNAL(timeout()), this, SLOT(on_mouseMove()));    // 屏幕共享时标记鼠标位置
 }
 
 void MainWindow::initCamera()
@@ -160,11 +170,144 @@ void MainWindow::initCamera()
     {
         // qDebug() << "max rate = " << viewSet.maximumFrameRate() << " min rate = " << viewSet.minimumFrameRate() << " resolution = " << viewSet.resolution() << " Format = " << viewSet.pixelFormat() << "" << viewSet.pixelAspectRatio();
         QString resolution = QString::number(viewSet.resolution().width()) + "x" + QString::number(viewSet.resolution().height());
-        if(ui->cb_resolution->findText(resolution) < 0)
+        if(ui->cb_camRes->findText(resolution) < 0)
         {
-            ui->cb_resolution->addItem(resolution, viewSets.indexOf(viewSet));
+            ui->cb_camRes->addItem(resolution, viewSets.indexOf(viewSet));
         }
     }
+}
+
+void MainWindow::on_multicastReady(QNetworkInterface interface, QHostAddress address)
+{
+    m_interface = interface;
+    m_address = address;
+
+    // 初始化 UDP 连接
+    initUdpConnections();
+
+    // 定时组播服务端 IP
+    command_timer->start(1000);
+}
+
+void MainWindow::on_startUp()
+{
+    this->show();
+}
+
+void MainWindow::on_commandTimeOut()
+{
+    // 定时组播服务端 IP
+    qint64 res;
+    res = command_socket->writeDatagram(m_address.toString().toUtf8().data(), m_address.toString().toUtf8().size(), groupAddress, command_port);
+    if(res < 0)
+    {
+        qDebug() << "command_socket: Multicast Not Ready!";
+    }
+}
+
+void MainWindow::on_commandReadyRead()
+{
+    // 接收客户端登录信息
+    qint64 res;
+    QByteArray byteArray;
+
+    while(command_socket->hasPendingDatagrams())
+    {
+        byteArray.resize(command_socket->pendingDatagramSize());
+        res = command_socket->readDatagram(byteArray.data(), byteArray.size());
+        if(res < 0)
+        {
+            qDebug() << "command_socket: Read Datagram Failed!";
+        }
+
+        // 接收到学生连接信息
+        if(!QString(byteArray).indexOf("Login"))
+        {
+            /*
+             * TO-DO STH.
+             */
+            stuNum++;
+            emit studentConnected(stuNum);
+            return;
+        }
+    }
+}
+
+void MainWindow::on_btn_screen_clicked()
+{
+    if(!flag_screen)
+    {
+        ui->btn_screenPen->setEnabled(true);    // 启用屏幕画笔按钮
+        screen_timer->start(screenTimer);       // 启用计时器开始截图
+        m_cursor->show();
+        qDebug() << "Screen Share Started!";
+        flag_screen = true;
+        flag_camera = true;
+        emit ui->btn_camera->clicked();
+    }
+    else
+    {
+        command_socket->writeDatagram(QString("Stop").toUtf8(), QString("Stop").toUtf8().size(), groupAddress, command_port);
+
+        m_cursor->hide();
+        screen_timer->stop();
+        qDebug() << "Screen Share Stopped!";
+        ui->videoViewer->clear();
+        flag_screen = false;
+        ui->btn_screenPen->setDisabled(true);
+    }
+}
+
+void MainWindow::on_cb_screenRes_currentIndexChanged(int index)
+{
+    Q_UNUSED(index)
+    screenRes = ui->cb_screenRes->currentData().value<QSize>();
+}
+
+void MainWindow::on_cb_screenHz_currentIndexChanged(int index)
+{
+    Q_UNUSED(index)
+    screenTimer = ui->cb_screenHz->currentData().value<int>();
+}
+
+void MainWindow::on_btn_screenPen_clicked()
+{
+    this->showMinimized();
+    m_screenPen->showFullScreen();
+}
+
+void MainWindow::on_screenTimeOut()
+{
+    QImage image = m_screen->grabWindow(0).toImage();    // 截取桌面图像
+
+    /*
+    static QImage oldImage;
+
+    if(oldImage == image)
+    {
+        return;
+    }
+    oldImage = image;
+    */
+
+    image = image.scaled(image.size().boundedTo(screenRes), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+    if(image.size().height() < 720)
+    {
+        video_threadPool->setMaxThreadCount(1);
+    }
+    else
+    {
+        /*
+         * 本机测试中发现，单线程无法及时处理 720p 摄像头图像，
+         * 始终存在内存溢出问题，但是若存在多摄像头设备，
+         * 切换后则内存占用恢复正常。
+         * 疑似与 CPU 单核性能和系统调度有关？
+         * 暂时设为 720p 双线程处理。
+         */
+        video_threadPool->setMaxThreadCount(2);
+    }
+    video_threadPool->start(new VideoFrameSender(m_interface, m_address, image, this));
 }
 
 void MainWindow::on_btn_camera_clicked()
@@ -178,7 +321,7 @@ void MainWindow::on_btn_camera_clicked()
         // 摄像头设备启动后才能获取支持的图像格式列表
         initCamera();
 
-        ui->cb_resolution->setEnabled(true);
+        ui->cb_camRes->setEnabled(true);
         flag_camera = true;
 
         // 摄像头功能与屏幕共享功能互斥（暂时）
@@ -188,7 +331,7 @@ void MainWindow::on_btn_camera_clicked()
     else
     {
         // 终止视频传输时发送信号
-        video_socket->writeDatagram(QString("Stop").toUtf8().data(), QString("Stop").toUtf8().size(), groupAddress, video_port);
+        command_socket->writeDatagram(QString("Stop").toUtf8().data(), QString("Stop").toUtf8().size(), groupAddress, command_port);
 
         m_camera->stop();
         qDebug() << "Camera Stopped!";
@@ -198,10 +341,10 @@ void MainWindow::on_btn_camera_clicked()
          * 摄像头关闭后，分辨率下拉框清空，
          * 直接清空会触发对应选项，须先断开信号槽
          */
-        ui->cb_resolution->setDisabled(true);
-        ui->cb_resolution->disconnect();
-        ui->cb_resolution->clear();
-        connect(ui->cb_resolution, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_resolution_currentIndexChanged(int)));
+        ui->cb_camRes->setDisabled(true);
+        ui->cb_camRes->disconnect();
+        ui->cb_camRes->clear();
+        connect(ui->cb_camRes, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_camRes_currentIndexChanged(int)));
 
         flag_camera = false;
 
@@ -251,9 +394,9 @@ void MainWindow::on_cb_camera_currentIndexChanged(int index)
     {
         m_camera->stop();
         ui->videoViewer->clear();
-        ui->cb_resolution->disconnect();
-        ui->cb_resolution->clear();
-        connect(ui->cb_resolution, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_resolution_currentIndexChanged(int)));
+        ui->cb_camRes->disconnect();
+        ui->cb_camRes->clear();
+        connect(ui->cb_camRes, SIGNAL(currentIndexChanged(int)), this, SLOT(on_cb_camRes_currentIndexChanged(int)));
     }
 
     delete m_camera;
@@ -273,7 +416,7 @@ void MainWindow::on_cb_camera_currentIndexChanged(int index)
     qDebug() << "Camera: " << availableCameras.at(index).description();
 }
 
-void MainWindow::on_cb_resolution_currentIndexChanged(int index)
+void MainWindow::on_cb_camRes_currentIndexChanged(int index)
 {
     m_camera->setViewfinderSettings(viewSets.at(index));
     qDebug() << "Resolution: " << viewSets.at(index).resolution().width() << "x" << viewSets.at(index).resolution().height();
@@ -323,65 +466,7 @@ void MainWindow::on_videoFrameChanged(QVideoFrame frame)
     {
         video_threadPool->setMaxThreadCount(2);
     }
-    video_threadPool->start(new VideoFrameSender(image, this));
-}
-
-void MainWindow::on_btn_screen_clicked()
-{
-    if(!flag_screen)
-    {
-        ui->btn_screenPen->setEnabled(true);    // 启用屏幕画笔按钮
-        m_timer->start(15);     // 每隔 15ms 触发（约等于 60Hz 刷新率）
-        m_cursor->show();
-        qDebug() << "Screen Share Started!";
-        flag_screen = true;
-        flag_camera = true;
-        emit ui->btn_camera->clicked();
-    }
-    else
-    {
-        video_socket->writeDatagram(QString("Stop").toUtf8(), QString("Stop").toUtf8().size(), groupAddress, video_port);
-
-        m_cursor->hide();
-        m_timer->stop();
-        qDebug() << "Screen Share Stopped!";
-        ui->videoViewer->clear();
-        flag_screen = false;
-        ui->btn_screenPen->setDisabled(true);
-    }
-}
-
-void MainWindow::on_timeOut()
-{
-    QImage image = m_screen->grabWindow(0).toImage();    // 截取桌面图像
-
-    /*
-    static QImage oldImage;
-
-    if(oldImage == image)
-    {
-        return;
-    }
-    oldImage = image;
-    */
-
-    image = image.scaled(image.size().boundedTo(QSize(1920, 1080)), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
-    if(image.size().height() < 720)
-    {
-        video_threadPool->setMaxThreadCount(1);
-    }
-    else
-    {
-        video_threadPool->setMaxThreadCount(2);
-    }
-    video_threadPool->start(new VideoFrameSender(image, this));
-}
-
-void MainWindow::on_btn_screenPen_clicked()
-{
-    this->showMinimized();
-    m_screenPen->showFullScreen();
+    video_threadPool->start(new VideoFrameSender(m_interface, m_address, image, this));
 }
 
 void MainWindow::on_videoFrameSent(QImage image)
@@ -499,7 +584,8 @@ void MainWindow::on_deviceReadyRead()
     ap.len = static_cast<int>(m_audioDevice->read(ap.data, sizeof(ap.data)));
     // qDebug() << QString(vp.data).toUtf8();
 
-    audio_threadPool->start(new AudioPackSender((char *)&ap));
+    audio_threadPool->setMaxThreadCount(1);
+    audio_threadPool->start(new AudioPackSender(m_interface, m_address, ap));
 }
 
 void MainWindow::on_mouseMove()

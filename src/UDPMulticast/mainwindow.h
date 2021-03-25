@@ -13,15 +13,13 @@
 #include <QUdpSocket>
 #include <QThreadPool>
 
+#include "startupdialog.h"
+
 #include "videosurface.h"
 #include "screenpen.h"
 
 #include "videoframesender.h"
 #include "audiopacksender.h"
-
-#define SAMPLE_RATE     44100   // 采样频率
-#define SAMPLE_SIZE     16      // 采样位数
-#define CHANNEL_COUNT   2       // 声道数
 
 namespace Ui {
 class MainWindow;
@@ -35,8 +33,17 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+protected:
+    void closeEvent(QCloseEvent *) override;
+
 private:
     Ui::MainWindow *ui;
+
+    StartUpDialog *m_startup;
+    QNetworkInterface m_interface;
+    QHostAddress m_address;
+    QTimer *command_timer;
+    int stuNum;
 
     QList<QCameraInfo> availableCameras;
     QCamera *m_camera;
@@ -46,7 +53,9 @@ private:
 
     QScreen *m_screen;
     QLabel *m_cursor;
-    QTimer *m_timer;
+    QSize screenRes;
+    int screenTimer;
+    QTimer *screen_timer;
     ScreenPen *m_screenPen;
     bool flag_screen;
 
@@ -56,18 +65,12 @@ private:
     QAudioFormat format;
     bool flag_audio;
 
-    QUdpSocket *video_socket;
+    QUdpSocket *command_socket;
     QHostAddress groupAddress;
-    quint16 video_port;
+    quint16 command_port;
 
     QThreadPool *video_threadPool;
     QThreadPool *audio_threadPool;
-
-    struct AudioPack
-    {
-        char data[1024 * 16];   // 单个音频数据包大小设为 16K，音质 44K/128Kbps（？）
-        int len;
-    };
 
     void initUdpConnections();
     void initInputDevice();
@@ -76,13 +79,20 @@ private:
     void initCamera();
 
 private slots:
+    void on_multicastReady(QNetworkInterface, QHostAddress);
+    void on_startUp();
+    void on_commandTimeOut();
+    void on_commandReadyRead();
+
+    void on_btn_screen_clicked();
+    void on_cb_screenRes_currentIndexChanged(int index);
+    void on_cb_screenHz_currentIndexChanged(int index);
+    void on_btn_screenPen_clicked();
+    void on_screenTimeOut();
     void on_btn_camera_clicked();
     void on_cb_camera_currentIndexChanged(int index);
-    void on_cb_resolution_currentIndexChanged(int index);
+    void on_cb_camRes_currentIndexChanged(int index);
     void on_videoFrameChanged(QVideoFrame);
-    void on_btn_screen_clicked();
-    void on_timeOut();
-    void on_btn_screenPen_clicked();
     Q_INVOKABLE void on_videoFrameSent(QImage);     // Q_INVOKABLE 用来修饰成员函数，使其能够被 QMetaObject 调用（从 QRunnable 子线程中调用）
     void on_btn_audio_clicked();
     void on_cb_device_currentIndexChanged(int index);
@@ -93,6 +103,8 @@ private slots:
     void on_mouseMove();
 
 signals:
+    void studentConnected(int);
+
     void volumeChanged(int value);
 
 };

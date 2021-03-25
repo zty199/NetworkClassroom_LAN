@@ -33,6 +33,7 @@ SOURCES += \
 HEADERS += \
         audiopackreceiver.h \
         mainwindow.h \
+        util.h \
         videoframereceiver.h
 
 FORMS += \

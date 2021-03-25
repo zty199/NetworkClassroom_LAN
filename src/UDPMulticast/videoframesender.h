@@ -4,13 +4,17 @@
 #include <QRunnable>
 #include <QImage>
 #include <QUdpSocket>
+#include <QNetworkInterface>
 
-#define UDP_MAX_SIZE    1200    // UDP 数据包最大长度   * MTU = 1500，故数据包大小 1500 - 20（IP头）- 8（UDP头）
+#include "util.h"
 
 class VideoFrameSender : public QRunnable
 {
 public:
-    explicit VideoFrameSender(QImage image, QObject *parent = nullptr);
+    explicit VideoFrameSender(QNetworkInterface interface,
+                              QHostAddress address,
+                              QImage image,
+                              QObject *parent = nullptr);
     ~VideoFrameSender() override;
 
 protected:
@@ -23,18 +27,8 @@ private:
     QUdpSocket *video_socket;
     QHostAddress groupAddress;
     quint16 video_port;
-
-    // UDP 包头
-    struct PackageHeader
-    {
-        qint32 TransPackageHdrSize;     // 包头大小(sizeof(PackageHeader))
-        qint32 TransPackageSize;        // 当前包头的大小(sizeof(PackageHeader) + 当前数据包长度)
-        qint32 DataSize;                // 数据的总大小
-        qint32 DataPackageNum;          // 数据被分成包的个数
-        qint32 DataPackageCurrIndex;    // 数据包当前的帧号
-        qint32 DataPackageOffset;       // 数据包在整个数据中的偏移
-        qint64 DataPackageTimeStamp;    // 数据包时间戳
-    };
+    QNetworkInterface interface;
+    QHostAddress address;
 
 };
 

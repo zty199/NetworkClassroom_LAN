@@ -29,6 +29,7 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
         screenpen.cpp \
+        startupdialog.cpp \
         videoframesender.cpp \
         videosurface.cpp
 
@@ -36,12 +37,15 @@ HEADERS += \
         audiopacksender.h \
         mainwindow.h \
         screenpen.h \
+        startupdialog.h \
+        util.h \
         videoframesender.h \
         videosurface.h
 
 FORMS += \
         mainwindow.ui \
-        screenpen.ui
+        screenpen.ui \
+        startupdialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
