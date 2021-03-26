@@ -3,6 +3,7 @@
 
 #include <QThread>
 #include <QUdpSocket>
+#include <QNetworkInterface>
 #include <QImage>
 
 #include "util.h"
@@ -12,7 +13,7 @@ class VideoFrameReceiver : public QThread
     Q_OBJECT
 
 public:
-    VideoFrameReceiver();
+    VideoFrameReceiver(QNetworkInterface interface, QHostAddress address);
     ~VideoFrameReceiver() override;
 
 protected:
@@ -22,6 +23,8 @@ private:
     QUdpSocket *video_socket;
     QHostAddress groupAddress;
     quint16 video_port;
+    QNetworkInterface interface;
+    QHostAddress address;
 
 private slots:
     void on_videoReadyRead();

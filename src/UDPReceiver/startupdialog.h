@@ -26,20 +26,20 @@ private:
     QNetworkInterface m_interface;
     QHostAddress m_address;
     QString m_name;
-    bool flag_multicast;
+    bool flag_connect;
 
     void initUI();
     void initConnections();
 
 private slots:
     void on_cb_network_currentIndexChanged(int index);
-    void on_btn_multicast_clicked();
+    void on_btn_connect_clicked();
     void on_btn_start_clicked();
-    void on_studentConnected(int);
+    void on_teacherConnected();
 
 signals:
-    void multicastReady(QNetworkInterface, QHostAddress, QString);
-    void multicastNotReady();
+    void connectReady(QNetworkInterface, QHostAddress, QString);
+    void connectNotReady();
     void startUp();
 
 };

@@ -2,6 +2,11 @@
 #include "ui_mainwindow.h"
 
 #include <QBuffer>
+#include <QFileInfo>
+#include <QFileDialog>
+#include <QDateTime>
+#include <QMessageBox>
+#include <QDesktopServices>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -79,12 +84,12 @@ void MainWindow::closeEvent(QCloseEvent *)
 
 void MainWindow::initUdpConnections()
 {
-    command_socket->bind(m_address, command_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress); // 绑定组播地址端口
+    command_socket->close();
+    command_socket->bind(m_address, command_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress); // 绑定地址端口
     command_socket->setMulticastInterface(m_interface);                                                     // 设置组播网卡
     command_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);                                    // 尝试优化套接字以降低延迟
     command_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);                                // 设置套接字属性
-    command_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);                           // 本机禁止接收
-    emit command_socket->readyRead();
+    // command_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);                           // 本机禁止接收（本地测试中禁用）
 }
 
 void MainWindow::initInputDevice()
@@ -125,9 +130,9 @@ void MainWindow::initUI()
     ui->btn_screenPen->setDisabled(true);   // 禁用屏幕画笔按钮
 
     // 初始化屏幕分辨率和刷新率下拉框
-    ui->cb_screenRes->addItem("360P", QSize(640, 360));
-    ui->cb_screenRes->addItem("720P", QSize(1280, 720));
-    ui->cb_screenRes->addItem("1080P (Not Recommended)", QSize(1920, 1080));
+    ui->cb_screenRes->addItem("360P(Low)", QSize(640, 360));
+    ui->cb_screenRes->addItem("720P(Medium)", QSize(1280, 720));
+    ui->cb_screenRes->addItem("1080P(High)", QSize(1920, 1080));
     ui->cb_screenHz->addItem("30Hz", 30);
     ui->cb_screenHz->addItem("60Hz", 15);
 
@@ -152,7 +157,8 @@ void MainWindow::initUI()
 
 void MainWindow::initConnections()
 {
-    connect(m_startup, SIGNAL(multicastReady(QNetworkInterface,QHostAddress)), this, SLOT(on_multicastReady(QNetworkInterface,QHostAddress)));
+    connect(m_startup, SIGNAL(multicastReady(QNetworkInterface,QHostAddress,QString)), this, SLOT(on_multicastReady(QNetworkInterface,QHostAddress,QString)));
+    connect(m_startup, SIGNAL(multicastNotReady()), this, SLOT(on_multicastNotReady()));
     connect(m_startup, SIGNAL(startUp()), this, SLOT(on_startUp()));
     connect(command_timer, SIGNAL(timeout()), this, SLOT(on_commandTimeOut()));
     connect(command_socket, SIGNAL(readyRead()), this, SLOT(on_commandReadyRead()));
@@ -177,16 +183,22 @@ void MainWindow::initCamera()
     }
 }
 
-void MainWindow::on_multicastReady(QNetworkInterface interface, QHostAddress address)
+void MainWindow::on_multicastReady(QNetworkInterface interface, QHostAddress address, QString name)
 {
     m_interface = interface;
     m_address = address;
+    m_name = name;
 
     // 初始化 UDP 连接
     initUdpConnections();
 
     // 定时组播服务端 IP
-    command_timer->start(1000);
+    command_timer->start(5000);
+}
+
+void MainWindow::on_multicastNotReady()
+{
+    command_timer->stop();
 }
 
 void MainWindow::on_startUp()
@@ -198,16 +210,17 @@ void MainWindow::on_commandTimeOut()
 {
     // 定时组播服务端 IP
     qint64 res;
-    res = command_socket->writeDatagram(m_address.toString().toUtf8().data(), m_address.toString().toUtf8().size(), groupAddress, command_port);
+    QString tmp = "Teacher\n" + m_address.toString();
+    res = command_socket->writeDatagram(tmp.toUtf8().data(), tmp.toUtf8().size(), groupAddress, command_port);
     if(res < 0)
     {
-        qDebug() << "command_socket: Multicast Not Ready!";
+        qDebug() << "command_socket: Teacher IP Send Failed!";
     }
 }
 
 void MainWindow::on_commandReadyRead()
 {
-    // 接收客户端登录信息
+    // 接收客户端发送信息
     qint64 res;
     QByteArray byteArray;
 
@@ -220,13 +233,31 @@ void MainWindow::on_commandReadyRead()
             qDebug() << "command_socket: Read Datagram Failed!";
         }
 
-        // 接收到学生连接信息
-        if(!QString(byteArray).indexOf("Login"))
+        // 接收到学生信息
+        if(!QString(byteArray).indexOf("Student\n"))
         {
-            /*
-             * TO-DO STH.
-             */
-            stuNum++;
+            QHostAddress stu(QString(byteArray).split("\n").at(1));
+            QString stuName = QString(byteArray).split("\n").at(2);
+            QString op = QString(byteArray).split("\n").at(3);
+            // qDebug() << stu << stuName << op;
+
+            if(op == "Connect")
+            {
+                if(!stuMap.contains(stu.toString()))
+                {
+                    stuNum++;
+                }
+                stuMap[stu.toString()] = stuName;
+            }
+            if(op == "Disconnect")
+            {
+                if(stuMap.contains(stu.toString()))
+                {
+                    QMap<QString, QString>::iterator it = stuMap.find(stu.toString());
+                    stuMap.erase(it);
+                    stuNum--;
+                }
+            }
             emit studentConnected(stuNum);
             return;
         }
@@ -586,6 +617,53 @@ void MainWindow::on_deviceReadyRead()
 
     audio_threadPool->setMaxThreadCount(1);
     audio_threadPool->start(new AudioPackSender(m_interface, m_address, ap));
+}
+
+void MainWindow::on_btn_fileTrans_clicked()
+{
+
+}
+
+void MainWindow::on_btn_signIn_clicked()
+{
+    // 生成文件名
+    QString fileName = "SignIn_" + QDateTime::currentDateTime().toString("yyMMddhhmmss");
+
+    // 保存文件对话框
+    fileName = QFileDialog::getSaveFileName(this,
+                                            "Export Sign-In Sheet",
+                                            QDir::homePath() + "/Desktop/" + fileName,
+                                            "*.txt");
+    if(fileName.isEmpty())
+    {
+        return;
+    }
+
+    // 写入文件
+    QFile file(fileName);
+    if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        QMessageBox::critical(this, "Critical", "Export Failed!", QMessageBox::Ok);
+        return;
+    }
+    else
+    {
+        QTextStream stream(&file);
+        QString newLine = "Index\tIP\tName";
+        stream << newLine;
+
+        int index = 1;
+        QMap<QString, QString>::iterator it;
+        for(it = stuMap.begin(); it != stuMap.end(); it++)
+        {
+            newLine = QString::number(index++) + "\t" + it.key() + "\t" + it.value();
+            stream << newLine;
+        }
+        stream.flush();
+        file.close();
+    }
+
+    // QDesktopServices::openUrl(QFileInfo(file).absolutePath());  // 打开文件所在文件夹
 }
 
 void MainWindow::on_mouseMove()

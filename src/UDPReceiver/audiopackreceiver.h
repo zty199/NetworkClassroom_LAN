@@ -3,6 +3,7 @@
 
 #include <QThread>
 #include <QUdpSocket>
+#include <QNetworkInterface>
 
 #include "util.h"
 
@@ -10,7 +11,7 @@ class AudioPackReceiver : public QThread
 {
     Q_OBJECT
 public:
-    AudioPackReceiver();
+    AudioPackReceiver(QNetworkInterface interface, QHostAddress address);
     ~AudioPackReceiver() override;
 
 protected:
@@ -20,6 +21,8 @@ private:
     QUdpSocket *audio_socket;
     QHostAddress groupAddress;
     quint16 audio_port;
+    QNetworkInterface interface;
+    QHostAddress address;
 
 private slots:
     void on_audioReadyRead();

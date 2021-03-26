@@ -6,54 +6,56 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
+    m_startup(new StartUpDialog(this)),
+    command_timer(new QTimer(this)),
+    flag_startup(false),
     availableDevices(QAudioDeviceInfo::availableDevices(QAudio::AudioOutput)),
     flag_audio(true),
-    audio_socket(new QUdpSocket(this)),
+    command_socket(new QUdpSocket(this)),
     groupAddress("239.0.0.1"),
-    audio_port(8889)
+    command_port(8887)
 {
     ui->setupUi(this);
 
-    initUdpConnections();
     initOutputDevice();
     initUI();
     initConnections();
-
-    video_receiver = new VideoFrameReceiver;
-    connect(video_receiver, SIGNAL(videoFrameReceived(QImage)), this, SLOT(on_videoFrameReceived(QImage)));
-    video_receiver->start();
-
-    audio_receiver = new AudioPackReceiver;
-    /*
-     * 在线程中通过信号槽传递信息时，参数默认放到队列中
-     * AudioPack 是自定义的结构体，不是 Qt 自带的参数结构，无法放入队列
-     * 将不识别的参数结构进行注册，让 Qt 能够识别
-     */
-    qRegisterMetaType<AudioPack>("AudioPack");  // 注册 AudioPack 类型
-    connect(audio_receiver, SIGNAL(audioPackReceived(AudioPack)), this, SLOT(on_audioPackReceived(AudioPack)));
-    audio_receiver->start();
 
     qDebug() << "Initialization Finished!";
 }
 
 MainWindow::~MainWindow()
 {
-    video_receiver->quit();
-    video_receiver->wait();
-    delete video_receiver;
-
-    audio_receiver->quit();
-    audio_receiver->wait();
-    delete audio_receiver;
+    if(flag_startup)
+    {
+        delete video_receiver;
+        delete audio_receiver;
+    }
 
     delete ui;
 }
 
+void MainWindow::closeEvent(QCloseEvent *)
+{
+    QString tmp = QString("Student\n") + m_address.toString() + QString("\n") + m_name + QString("\nDisconnect");
+    command_socket->writeDatagram(tmp.toUtf8().data(), tmp.toUtf8().size(), teacher_address, command_port);
+
+    if(flag_startup)
+    {
+        video_receiver->quit();
+        video_receiver->wait();
+        audio_receiver->quit();
+        audio_receiver->wait();
+    }
+}
+
 void MainWindow::initUdpConnections()
 {
-    // audio_socket->bind(QHostAddress::AnyIPv4, audio_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);  // 绑定组播地址端口
-    // audio_socket->joinMulticastGroup(groupAddress);         // 添加到组播，绑定到读套接字上
-    // audio_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024 * 64);       // 缓冲区最大存储 4个 数据包（单个 16K）
+    command_socket->close();
+    command_socket->bind(m_address, command_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress); // 绑定地址端口
+    command_socket->setMulticastInterface(m_interface);                                                     // 设置组播网卡
+    command_socket->joinMulticastGroup(groupAddress);                                                       // 添加到组播，绑定到读套接字上
+    command_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);                                    // 尝试优化套接字以降低延迟
 }
 
 void MainWindow::initOutputDevice()
@@ -81,11 +83,104 @@ void MainWindow::initUI()
     {
         ui->cb_device->addItem(device.deviceName(), availableDevices.indexOf(device));
     }
+
+    this->hide();
+    m_startup->show();
 }
 
 void MainWindow::initConnections()
 {
+    connect(m_startup, SIGNAL(connectReady(QNetworkInterface,QHostAddress,QString)), this, SLOT(on_connectReady(QNetworkInterface,QHostAddress,QString)));
+    connect(m_startup, SIGNAL(connectNotReady()), this, SLOT(on_connectNotReady()));
+    connect(m_startup, SIGNAL(startUp()), this, SLOT(on_startUp()));
+    connect(command_timer, SIGNAL(timeout()), this, SLOT(on_commandTimeOut()));
+    connect(command_socket, SIGNAL(readyRead()), this, SLOT(on_commandReadyRead()));
     connect(this, SIGNAL(volumeChanged(int)), this, SLOT(on_volumeChanged(int)));
+}
+
+void MainWindow::on_connectReady(QNetworkInterface interface, QHostAddress address, QString name)
+{
+    m_interface = interface;
+    m_address = address;
+    m_name = name;
+
+    initUdpConnections();
+}
+
+void MainWindow::on_connectNotReady()
+{
+    command_timer->stop();
+}
+
+void MainWindow::on_startUp()
+{
+    // 发送客户端信息
+    qint64 res;
+    QString tmp = QString("Student\n") + m_address.toString() + QString("\n") + m_name + QString("\nConnect");
+    // qDebug() << tmp;
+    res = command_socket->writeDatagram(tmp.toUtf8().data(), tmp.toUtf8().size(), teacher_address, command_port);
+    if(res < 0)
+    {
+        qDebug() << "command_socket: Student IP Send 1 Failed!";
+    }
+
+    // command_timer->start(5000);
+
+    // 启动音视频接收线程
+    video_receiver = new VideoFrameReceiver(m_interface, m_address);
+    audio_receiver = new AudioPackReceiver(m_interface, m_address);
+    /*
+     * 在线程中通过信号槽传递信息时，参数默认放到队列中
+     * AudioPack 是自定义的结构体，不是 Qt 自带的参数结构，无法放入队列
+     * 将不识别的参数结构进行注册，让 Qt 能够识别
+     */
+    qRegisterMetaType<AudioPack>("AudioPack");  // 注册 AudioPack 类型
+    connect(video_receiver, SIGNAL(videoFrameReceived(QImage)), this, SLOT(on_videoFrameReceived(QImage)));
+    connect(audio_receiver, SIGNAL(audioPackReceived(AudioPack)), this, SLOT(on_audioPackReceived(AudioPack)));
+    video_receiver->start();
+    audio_receiver->start();
+
+    flag_startup = true;
+
+    this->show();
+}
+
+void MainWindow::on_commandTimeOut()
+{
+    // 定时发送客户端信息
+    qint64 res;
+    QString tmp = QString("Student\n") + m_address.toString() + QString("\n") + m_name + QString("\nConnect");
+    // qDebug() << tmp;
+    res = command_socket->writeDatagram(tmp.toUtf8().data(), tmp.toUtf8().size(), teacher_address, command_port);
+    if(res < 0)
+    {
+        qDebug() << "command_socket: Student IP Send 2 Failed!";
+    }
+}
+
+void MainWindow::on_commandReadyRead()
+{
+    // 接收服务端发送信息
+    qint64 res;
+    QByteArray byteArray;
+
+    while(command_socket->hasPendingDatagrams())
+    {
+        byteArray.resize(command_socket->pendingDatagramSize());
+        res = command_socket->readDatagram(byteArray.data(), byteArray.size());
+        if(res < 0)
+        {
+            qDebug() << "command_socket: Read Datagram Failed!";
+        }
+
+        // 接收到老师上线信息
+        if(!QString(byteArray).indexOf("Teacher\n"))
+        {
+            teacher_address = QHostAddress(QString(byteArray).split("\n").at(1));
+            emit teacherConnected();
+            return;
+        }
+    }
 }
 
 void MainWindow::on_videoFrameReceived(QImage image)

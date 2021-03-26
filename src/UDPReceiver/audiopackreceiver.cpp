@@ -1,6 +1,9 @@
 #include "audiopackreceiver.h"
 
-AudioPackReceiver::AudioPackReceiver()
+AudioPackReceiver::AudioPackReceiver(QNetworkInterface interface,
+                                     QHostAddress address) :
+    interface(interface),
+    address(address)
 {
 
 }
@@ -17,9 +20,12 @@ void AudioPackReceiver::run()
     audio_port = 8889;
 
     audio_socket = new QUdpSocket;
-    audio_socket->bind(QHostAddress::AnyIPv4, audio_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);  // 绑定组播地址端口
-    audio_socket->joinMulticastGroup(groupAddress);         // 添加到组播，绑定到读套接字上
-    audio_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024 * 64);       // 缓冲区最大存储 4个 数据包（单个 16K）
+    // audio_socket->bind(QHostAddress::AnyIPv4, audio_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
+    audio_socket->bind(address, audio_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
+    audio_socket->setMulticastInterface(interface);
+    audio_socket->joinMulticastGroup(groupAddress);
+    audio_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+    audio_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024 * 64);
 
     connect(audio_socket, SIGNAL(readyRead()), this, SLOT(on_audioReadyRead()), Qt::DirectConnection);
     exec();

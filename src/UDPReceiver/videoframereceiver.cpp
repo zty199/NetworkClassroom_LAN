@@ -1,6 +1,9 @@
 #include "videoframereceiver.h"
 
-VideoFrameReceiver::VideoFrameReceiver()
+VideoFrameReceiver::VideoFrameReceiver(QNetworkInterface interface,
+                                       QHostAddress address) :
+    interface(interface),
+    address(address)
 {
 
 }
@@ -17,9 +20,12 @@ void VideoFrameReceiver::run()
     video_port = 8888;
 
     video_socket = new QUdpSocket;
-    video_socket->bind(QHostAddress::AnyIPv4, video_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);  // 绑定组播地址端口
-    video_socket->joinMulticastGroup(groupAddress);         // 添加到组播，绑定到读套接字上
-    video_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1920 * 1080 * 16); // 缓冲区最大存储 4 张 1080p 位图
+    // video_socket->bind(QHostAddress::AnyIPv4, video_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
+    video_socket->bind(address, video_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
+    video_socket->setMulticastInterface(interface);
+    video_socket->joinMulticastGroup(groupAddress);
+    video_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+    video_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1920 * 1080 * 16);
 
     /*
      * 此处必须指定连接方式为 Qt::DirectConnection，否则 SLOT 函数会在主线程内被执行，而不是子线程

@@ -28,16 +28,19 @@ SOURCES += \
         audiopackreceiver.cpp \
         main.cpp \
         mainwindow.cpp \
+        startupdialog.cpp \
         videoframereceiver.cpp
 
 HEADERS += \
         audiopackreceiver.h \
         mainwindow.h \
+        startupdialog.h \
         util.h \
         videoframereceiver.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+        startupdialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

@@ -42,7 +42,9 @@ private:
     StartUpDialog *m_startup;
     QNetworkInterface m_interface;
     QHostAddress m_address;
+    QString m_name;
     QTimer *command_timer;
+    QMap<QString, QString> stuMap;
     int stuNum;
 
     QList<QCameraInfo> availableCameras;
@@ -79,7 +81,8 @@ private:
     void initCamera();
 
 private slots:
-    void on_multicastReady(QNetworkInterface, QHostAddress);
+    void on_multicastReady(QNetworkInterface, QHostAddress, QString);
+    void on_multicastNotReady();
     void on_startUp();
     void on_commandTimeOut();
     void on_commandReadyRead();
@@ -99,6 +102,8 @@ private slots:
     void on_slider_volume_valueChanged(int value);
     void on_volumeChanged(int value);
     void on_deviceReadyRead();
+    void on_btn_fileTrans_clicked();
+    void on_btn_signIn_clicked();
 
     void on_mouseMove();
 
