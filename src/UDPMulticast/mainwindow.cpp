@@ -621,7 +621,36 @@ void MainWindow::on_deviceReadyRead()
 
 void MainWindow::on_btn_fileTrans_clicked()
 {
+    // 打开文件对话框
+    QString fileName = QFileDialog::getOpenFileName(this,
+                                                    "Select File to Transfer",
+                                                    QDir::homePath() + "/Desktop/",
+                                                    "All Files (*.*)");
+    if(fileName.isEmpty())
+    {
+        return;
+    }
 
+    // 打开文件
+    QFile file(fileName);
+    if(!file.open(QIODevice::ReadOnly))
+    {
+        QMessageBox::critical(this, "Critical", "File Open Failed!", QMessageBox::Ok);
+        return;
+    }
+
+    // 组播通知客户端文件信息
+    qint64 res;
+    QString tmp = "File\n" + QFileInfo(fileName).fileName() + "\n" + QString::number(QFileInfo(fileName).size());
+    res = command_socket->writeDatagram(tmp.toUtf8().data(), tmp.toUtf8().size(), groupAddress, command_port);
+    if(res < 0)
+    {
+        qDebug() << "command_socket: File Transfer Send Failed!";
+    }
+
+    /*
+     * Wait for TCP Server Receiving New Connection from Client, and use Subthreads to Transfer File
+     */
 }
 
 void MainWindow::on_btn_signIn_clicked()
@@ -633,7 +662,7 @@ void MainWindow::on_btn_signIn_clicked()
     fileName = QFileDialog::getSaveFileName(this,
                                             "Export Sign-In Sheet",
                                             QDir::homePath() + "/Desktop/" + fileName,
-                                            "*.txt");
+                                            "Text Files (*.txt)");
     if(fileName.isEmpty())
     {
         return;
@@ -643,7 +672,7 @@ void MainWindow::on_btn_signIn_clicked()
     QFile file(fileName);
     if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
-        QMessageBox::critical(this, "Critical", "Export Failed!", QMessageBox::Ok);
+        QMessageBox::critical(this, "Critical", "File Export Failed!", QMessageBox::Ok);
         return;
     }
     else

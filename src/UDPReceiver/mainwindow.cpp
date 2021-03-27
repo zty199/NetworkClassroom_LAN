@@ -2,6 +2,9 @@
 #include "ui_mainwindow.h"
 
 #include <QMetaType>
+#include <QMessageBox>
+#include <QFileInfo>
+#include <QFileDialog>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -173,12 +176,47 @@ void MainWindow::on_commandReadyRead()
             qDebug() << "command_socket: Read Datagram Failed!";
         }
 
-        // 接收到老师上线信息
+        // 接收到服务端上线信息
         if(!QString(byteArray).indexOf("Teacher\n"))
         {
             teacher_address = QHostAddress(QString(byteArray).split("\n").at(1));
             emit teacherConnected();
             return;
+        }
+
+        // 接收到文件信息
+        if(!QString(byteArray).indexOf("File\n"))
+        {
+            QString fileName = QString(byteArray).split("\n").at(1);
+            qint64 fileSize = QString(byteArray).split("\n").at(2).toInt();
+
+            // 询问是否接收文件
+            QMessageBox::StandardButton button = QMessageBox::question(this,
+                                                                   "File Transfer",
+                                                                   "New File Transfer Requested. Receive?",
+                                                                   QMessageBox::Yes | QMessageBox::No,
+                                                                   QMessageBox::Yes);
+            if(button == QMessageBox::Yes)
+            {
+                //保留源文件后缀名格式
+                QString suffix = QFileInfo(fileName).suffix();
+
+                QString tmp = fileName;
+                // 另存为文件对话框
+                fileName = QFileDialog::getSaveFileName(this,
+                                                        "Save As",
+                                                        QDir::homePath() + "/Desktop/" + fileName,
+                                                        QString("*." + suffix));
+                if(fileName.isEmpty())
+                {
+                    fileName = QDir::homePath() + "/Desktop/" + tmp;
+                }
+                qDebug() << QFileInfo(fileName).absoluteFilePath() << fileSize;
+
+                /*
+                 * Send TCP Connection to Server Here (in a new subthread)
+                 */
+            }
         }
     }
 }
