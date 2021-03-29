@@ -28,8 +28,10 @@ MainWindow::MainWindow(QWidget *parent) :
     command_socket(new QUdpSocket(this)),
     groupAddress("239.0.0.1"),
     command_port(8887),
+    file_port(8888),
     video_threadPool(new QThreadPool(this)),
-    audio_threadPool(new QThreadPool(this))
+    audio_threadPool(new QThreadPool(this)),
+    file_threadPool(new QThreadPool(this))
 {
     ui->setupUi(this);
 
@@ -55,6 +57,7 @@ MainWindow::~MainWindow()
 {
     delete video_threadPool;
     delete audio_threadPool;
+    delete file_threadPool;
     delete ui;
 }
 
@@ -78,6 +81,9 @@ void MainWindow::closeEvent(QCloseEvent *)
 
     audio_threadPool->clear();
     audio_threadPool->waitForDone();
+
+    file_threadPool->clear();
+    file_threadPool->waitForDone();
 
     command_socket->writeDatagram(QString("Stop").toUtf8().data(), QString("Stop").toUtf8().size(), groupAddress, command_port);
 }
@@ -638,19 +644,21 @@ void MainWindow::on_btn_fileTrans_clicked()
         QMessageBox::critical(this, "Critical", "File Open Failed!", QMessageBox::Ok);
         return;
     }
+    file.close();
 
-    // 组播通知客户端文件信息
-    qint64 res;
-    QString tmp = "File\n" + QFileInfo(fileName).fileName() + "\n" + QString::number(QFileInfo(fileName).size());
-    res = command_socket->writeDatagram(tmp.toUtf8().data(), tmp.toUtf8().size(), groupAddress, command_port);
-    if(res < 0)
+    // 获取当前连接客户端列表
+    QList<QHostAddress> stuList;
+    QMap<QString, QString>::iterator it;
+    for(it = stuMap.begin(); it != stuMap.end(); it++)
     {
-        qDebug() << "command_socket: File Transfer Send Failed!";
+        stuList.append(QHostAddress(it.key()));
     }
 
-    /*
-     * Wait for TCP Server Receiving New Connection from Client, and use Subthreads to Transfer File
-     */
+    file_threadPool->setMaxThreadCount(2);
+    foreach(const QHostAddress &address, stuList)
+    {
+        file_threadPool->start(new FileSender(address, fileName));
+    }
 }
 
 void MainWindow::on_btn_signIn_clicked()
@@ -675,22 +683,20 @@ void MainWindow::on_btn_signIn_clicked()
         QMessageBox::critical(this, "Critical", "File Export Failed!", QMessageBox::Ok);
         return;
     }
-    else
-    {
-        QTextStream stream(&file);
-        QString newLine = "Index\tIP\tName";
-        stream << newLine;
 
-        int index = 1;
-        QMap<QString, QString>::iterator it;
-        for(it = stuMap.begin(); it != stuMap.end(); it++)
-        {
-            newLine = QString::number(index++) + "\t" + it.key() + "\t" + it.value();
-            stream << newLine;
-        }
-        stream.flush();
-        file.close();
+    QTextStream stream(&file);
+    QString newLine = "Index\tIP\tName";
+    stream << newLine;
+
+    int index = 1;
+    QMap<QString, QString>::iterator it;
+    for(it = stuMap.begin(); it != stuMap.end(); it++)
+    {
+        newLine = QString::number(index++) + "\t" + it.key() + "\t" + it.value();
+        stream << newLine;
     }
+    stream.flush();
+    file.close();
 
     // QDesktopServices::openUrl(QFileInfo(file).absolutePath());  // 打开文件所在文件夹
 }

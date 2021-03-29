@@ -55,9 +55,9 @@ void VideoFrameSender::run()
     uchar *dataBuffer = (uchar *)buffer.data().data();
 
     qint32 packetNum = dataLength / UDP_MAX_SIZE;
-    qint32 lastPaketSize = dataLength % UDP_MAX_SIZE;
+    qint32 lastPacketSize = dataLength % UDP_MAX_SIZE;
     qint32 currentPacketIndex = 0;
-    if(lastPaketSize != 0)
+    if(lastPacketSize != 0)
     {
         packetNum++;
     }
@@ -107,11 +107,11 @@ void VideoFrameSender::run()
         }
         else
         {
-            packageHead.TransPackageSize = packageHead.TransPackageHdrSize + (dataLength - currentPacketIndex * UDP_MAX_SIZE);
+            packageHead.TransPackageSize = packageHead.TransPackageHdrSize + lastPacketSize;
             packageHead.DataPackageCurrIndex = currentPacketIndex + 1;
             packageHead.DataPackageOffset = currentPacketIndex * UDP_MAX_SIZE;
             memcpy(frameBuffer, &packageHead, packageHead.TransPackageHdrSize);
-            memcpy(frameBuffer + packageHead.TransPackageHdrSize, dataBuffer + packageHead.DataPackageOffset, dataLength - currentPacketIndex * UDP_MAX_SIZE);
+            memcpy(frameBuffer + packageHead.TransPackageHdrSize, dataBuffer + packageHead.DataPackageOffset, lastPacketSize);
 
             res = video_socket->writeDatagram(
                         (const char *)frameBuffer, packageHead.TransPackageSize,

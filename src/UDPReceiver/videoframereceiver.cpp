@@ -20,7 +20,6 @@ void VideoFrameReceiver::run()
     video_port = 8888;
 
     video_socket = new QUdpSocket;
-    // video_socket->bind(QHostAddress::AnyIPv4, video_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
     video_socket->bind(address, video_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
     video_socket->setMulticastInterface(interface);
     video_socket->joinMulticastGroup(groupAddress);
@@ -46,13 +45,6 @@ void VideoFrameReceiver::on_videoReadyRead()
         if(res < 0)
         {
             qDebug() << "video_socket: Read Datagram Failed!";
-            return;
-        }
-
-        // 接收到停止信号则清空画面
-        if(QString(byteArray) == "Stop")
-        {
-            emit videoFrameReceived(QImage());
             return;
         }
 

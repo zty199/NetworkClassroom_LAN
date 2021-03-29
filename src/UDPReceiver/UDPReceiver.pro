@@ -26,6 +26,7 @@ CONFIG += c++11
 
 SOURCES += \
         audiopackreceiver.cpp \
+        filereceiver.cpp \
         main.cpp \
         mainwindow.cpp \
         startupdialog.cpp \
@@ -33,6 +34,7 @@ SOURCES += \
 
 HEADERS += \
         audiopackreceiver.h \
+        filereceiver.h \
         mainwindow.h \
         startupdialog.h \
         util.h \

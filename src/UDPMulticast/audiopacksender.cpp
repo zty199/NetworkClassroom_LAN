@@ -41,9 +41,9 @@ void AudioPackSender::run()
     uchar *dataBuffer = (uchar *)ap->data;
 
     qint32 packetNum = dataLength / UDP_MAX_SIZE;
-    qint32 lastPaketSize = dataLength % UDP_MAX_SIZE;
+    qint32 lastPacketSize = dataLength % UDP_MAX_SIZE;
     qint32 currentPacketIndex = 0;
-    if(lastPaketSize != 0)
+    if(lastPacketSize != 0)
     {
         packetNum++;
     }
@@ -92,11 +92,11 @@ void AudioPackSender::run()
         }
         else
         {
-            packageHead.TransPackageSize = packageHead.TransPackageHdrSize + (dataLength - currentPacketIndex * UDP_MAX_SIZE);
+            packageHead.TransPackageSize = packageHead.TransPackageHdrSize + lastPacketSize;
             packageHead.DataPackageCurrIndex = currentPacketIndex + 1;
             packageHead.DataPackageOffset = currentPacketIndex * UDP_MAX_SIZE;
             memcpy(frameBuffer, &packageHead, packageHead.TransPackageHdrSize);
-            memcpy(frameBuffer + packageHead.TransPackageHdrSize, dataBuffer + packageHead.DataPackageOffset, dataLength - currentPacketIndex * UDP_MAX_SIZE);
+            memcpy(frameBuffer + packageHead.TransPackageHdrSize, dataBuffer + packageHead.DataPackageOffset, lastPacketSize);
 
             res = audio_socket->writeDatagram(
                         (const char *)frameBuffer, packageHead.TransPackageSize,
@@ -104,7 +104,7 @@ void AudioPackSender::run()
 
             if(res < 0)
             {
-                qDebug() << "video_socket: Packet Send Failed!";
+                qDebug() << "audio_socket: Packet Send Failed!";
             }
 
             currentPacketIndex++;

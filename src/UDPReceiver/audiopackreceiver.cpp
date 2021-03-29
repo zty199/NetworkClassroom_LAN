@@ -20,7 +20,6 @@ void AudioPackReceiver::run()
     audio_port = 8889;
 
     audio_socket = new QUdpSocket;
-    // audio_socket->bind(QHostAddress::AnyIPv4, audio_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
     audio_socket->bind(address, audio_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
     audio_socket->setMulticastInterface(interface);
     audio_socket->joinMulticastGroup(groupAddress);

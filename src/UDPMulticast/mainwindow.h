@@ -11,6 +11,7 @@
 #include <QAudioInput>
 #include <QAudioDeviceInfo>
 #include <QUdpSocket>
+#include <QTcpSocket>
 #include <QThreadPool>
 
 #include "startupdialog.h"
@@ -20,6 +21,7 @@
 
 #include "videoframesender.h"
 #include "audiopacksender.h"
+#include "filesender.h"
 
 namespace Ui {
 class MainWindow;
@@ -71,8 +73,13 @@ private:
     QHostAddress groupAddress;
     quint16 command_port;
 
+    QTcpSocket *file_socket;
+    qint64 file_port;
+    QString fileSent;
+
     QThreadPool *video_threadPool;
     QThreadPool *audio_threadPool;
+    QThreadPool *file_threadPool;
 
     void initUdpConnections();
     void initInputDevice();
@@ -109,7 +116,6 @@ private slots:
 
 signals:
     void studentConnected(int);
-
     void volumeChanged(int value);
 
 };

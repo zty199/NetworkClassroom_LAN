@@ -3,7 +3,7 @@
 
 #include <QtGlobal>
 
-#define UDP_MAX_SIZE    1200    // UDP 数据包最大长度   * MTU = 1500，故数据包大小 1500 - 20（IP头）- 8（UDP头）
+#define UDP_MAX_SIZE    1200    // UDP 数据包最大长度   * MTU = 1500，故数据包大小 1500 - 20（IP头）- 8（UDP头） = 1472
 
 #define SAMPLE_RATE     44100   // 采样频率
 #define SAMPLE_SIZE     16      // 采样位数

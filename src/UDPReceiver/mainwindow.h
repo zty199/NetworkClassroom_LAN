@@ -11,6 +11,7 @@
 
 #include "videoframereceiver.h"
 #include "audiopackreceiver.h"
+#include "filereceiver.h"
 
 namespace Ui {
 class MainWindow;
@@ -50,6 +51,7 @@ private:
 
     VideoFrameReceiver *video_receiver;
     AudioPackReceiver *audio_receiver;
+    FileReceiver *file_receiver;
 
     void initUdpConnections();
     void initOutputDevice();
@@ -72,7 +74,6 @@ private slots:
 
 signals:
     void teacherConnected();
-
     void volumeChanged(int value);
 
 };

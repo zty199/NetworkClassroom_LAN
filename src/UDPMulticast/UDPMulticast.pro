@@ -26,6 +26,7 @@ CONFIG += c++11
 
 SOURCES += \
         audiopacksender.cpp \
+        filesender.cpp \
         main.cpp \
         mainwindow.cpp \
         screenpen.cpp \
@@ -35,6 +36,7 @@ SOURCES += \
 
 HEADERS += \
         audiopacksender.h \
+        filesender.h \
         mainwindow.h \
         screenpen.h \
         startupdialog.h \

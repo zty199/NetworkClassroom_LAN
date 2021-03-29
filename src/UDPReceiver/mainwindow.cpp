@@ -33,8 +33,16 @@ MainWindow::~MainWindow()
     {
         delete video_receiver;
         delete audio_receiver;
+        delete file_receiver;
     }
 
+    command_socket->close();
+    delete command_socket;
+
+    command_timer->stop();
+    delete command_timer;
+
+    delete m_startup;
     delete ui;
 }
 
@@ -49,6 +57,8 @@ void MainWindow::closeEvent(QCloseEvent *)
         video_receiver->wait();
         audio_receiver->quit();
         audio_receiver->wait();
+        file_receiver->quit();
+        file_receiver->wait();
     }
 }
 
@@ -120,17 +130,19 @@ void MainWindow::on_startUp()
     // 发送客户端信息
     qint64 res;
     QString tmp = QString("Student\n") + m_address.toString() + QString("\n") + m_name + QString("\nConnect");
-    // qDebug() << tmp;
     res = command_socket->writeDatagram(tmp.toUtf8().data(), tmp.toUtf8().size(), teacher_address, command_port);
     if(res < 0)
     {
-        qDebug() << "command_socket: Student IP Send 1 Failed!";
+        qDebug() << "command_socket: Student IP Send Failed!";
     }
 
-    // command_timer->start(5000);
+    // command_timer->start(5000);  // 定时发送客户端信息
 
-    // 启动音视频接收线程
+    // 启动音视频和文件接收线程
     video_receiver = new VideoFrameReceiver(m_interface, m_address);
+    connect(video_receiver, SIGNAL(videoFrameReceived(QImage)), this, SLOT(on_videoFrameReceived(QImage)));
+    video_receiver->start();
+
     audio_receiver = new AudioPackReceiver(m_interface, m_address);
     /*
      * 在线程中通过信号槽传递信息时，参数默认放到队列中
@@ -138,10 +150,11 @@ void MainWindow::on_startUp()
      * 将不识别的参数结构进行注册，让 Qt 能够识别
      */
     qRegisterMetaType<AudioPack>("AudioPack");  // 注册 AudioPack 类型
-    connect(video_receiver, SIGNAL(videoFrameReceived(QImage)), this, SLOT(on_videoFrameReceived(QImage)));
     connect(audio_receiver, SIGNAL(audioPackReceived(AudioPack)), this, SLOT(on_audioPackReceived(AudioPack)));
-    video_receiver->start();
     audio_receiver->start();
+
+    file_receiver = new FileReceiver(m_address);
+    file_receiver->start();
 
     flag_startup = true;
 
@@ -153,11 +166,10 @@ void MainWindow::on_commandTimeOut()
     // 定时发送客户端信息
     qint64 res;
     QString tmp = QString("Student\n") + m_address.toString() + QString("\n") + m_name + QString("\nConnect");
-    // qDebug() << tmp;
     res = command_socket->writeDatagram(tmp.toUtf8().data(), tmp.toUtf8().size(), teacher_address, command_port);
     if(res < 0)
     {
-        qDebug() << "command_socket: Student IP Send 2 Failed!";
+        qDebug() << "command_socket: Student IP Send Failed!";
     }
 }
 
@@ -184,39 +196,11 @@ void MainWindow::on_commandReadyRead()
             return;
         }
 
-        // 接收到文件信息
-        if(!QString(byteArray).indexOf("File\n"))
+        // 接收到服务端视频共享结束信息
+        if(!QString(byteArray).indexOf("Stop"))
         {
-            QString fileName = QString(byteArray).split("\n").at(1);
-            qint64 fileSize = QString(byteArray).split("\n").at(2).toInt();
-
-            // 询问是否接收文件
-            QMessageBox::StandardButton button = QMessageBox::question(this,
-                                                                   "File Transfer",
-                                                                   "New File Transfer Requested. Receive?",
-                                                                   QMessageBox::Yes | QMessageBox::No,
-                                                                   QMessageBox::Yes);
-            if(button == QMessageBox::Yes)
-            {
-                //保留源文件后缀名格式
-                QString suffix = QFileInfo(fileName).suffix();
-
-                QString tmp = fileName;
-                // 另存为文件对话框
-                fileName = QFileDialog::getSaveFileName(this,
-                                                        "Save As",
-                                                        QDir::homePath() + "/Desktop/" + fileName,
-                                                        QString("*." + suffix));
-                if(fileName.isEmpty())
-                {
-                    fileName = QDir::homePath() + "/Desktop/" + tmp;
-                }
-                qDebug() << QFileInfo(fileName).absoluteFilePath() << fileSize;
-
-                /*
-                 * Send TCP Connection to Server Here (in a new subthread)
-                 */
-            }
+            ui->videoViewer->clear();
+            return;
         }
     }
 }
