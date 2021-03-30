@@ -48,7 +48,8 @@ void StartUpDialog::initConnections()
 
 void StartUpDialog::on_cb_network_currentIndexChanged(int index)
 {
-    m_interface = availableInterfaces.at(ui->cb_network->itemData(index).value<int>());
+    Q_UNUSED(index)
+    m_interface = availableInterfaces.at(ui->cb_network->currentData().value<int>());
 }
 
 void StartUpDialog::on_btn_multicast_clicked()
@@ -113,9 +114,9 @@ void StartUpDialog::on_btn_multicast_clicked()
                         && (availableInterfaces.at(i).flags() & QNetworkInterface::CanMulticast))
                 {
                     ui->cb_network->addItem(availableInterfaces.at(i).humanReadableName(), i);
-                    if(availableInterfaces.at(i).name() == curInterface.name())
+                    if(availableInterfaces.at(i).humanReadableName() == curInterface.humanReadableName())
                     {
-                        index = i;
+                        index = ui->cb_network->count() - 1;
                     }
                 }
             }

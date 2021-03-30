@@ -21,8 +21,7 @@ void AudioPackReceiver::run()
 
     audio_socket = new QUdpSocket;
     audio_socket->bind(address, audio_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
-    audio_socket->setMulticastInterface(interface);
-    audio_socket->joinMulticastGroup(groupAddress);
+    audio_socket->joinMulticastGroup(groupAddress, interface);
     audio_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     audio_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024 * 64);
 
@@ -48,6 +47,7 @@ void AudioPackReceiver::on_audioReadyRead()
         static qint32 num = 1;
         static qint32 size = 0;
         static qint64 timestamp = 0;
+        Q_UNUSED(timestamp)
         static AudioPack ap;
 
         PackageHeader *packageHead = (PackageHeader *)byteArray.data();

@@ -2,6 +2,7 @@
 
 #include <QFileDialog>
 #include <QMessageBox>
+// #include <QDesktopServices>
 
 FileReceiver::FileReceiver(QHostAddress m_address) :
     m_address(m_address)
@@ -31,6 +32,8 @@ void FileReceiver::on_newConnection()
     {
         file_socket = file_server->nextPendingConnection();
         // qDebug() << file_socket->peerAddress().toString() << file_socket->peerPort();
+        file_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+        file_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024 * 64);
 
         connect(file_socket, SIGNAL(readyRead()), this, SLOT(on_fileReadyRead()), Qt::DirectConnection);
         connect(file_socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)), Qt::DirectConnection);
@@ -51,7 +54,7 @@ void FileReceiver::on_fileReadyRead()
     {
         fileName = QString(byteArray).split("\n").at(1);
         fileSize = QString(byteArray).split("\n").at(2).toInt(0);
-        qDebug() << fileName << fileSize;
+        // qDebug() << fileName << fileSize;
 
         // 另存为文件
         QString suffix = QFileInfo(fileName).suffix();

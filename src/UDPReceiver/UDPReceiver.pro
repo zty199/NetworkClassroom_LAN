@@ -30,6 +30,8 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
         startupdialog.cpp \
+        textchatdialog.cpp \
+        textmsgtransceiver.cpp \
         videoframereceiver.cpp
 
 HEADERS += \
@@ -37,12 +39,15 @@ HEADERS += \
         filereceiver.h \
         mainwindow.h \
         startupdialog.h \
+        textchatdialog.h \
+        textmsgtransceiver.h \
         util.h \
         videoframereceiver.h
 
 FORMS += \
         mainwindow.ui \
-        startupdialog.ui
+        startupdialog.ui \
+        textchatdialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

@@ -21,8 +21,7 @@ void VideoFrameReceiver::run()
 
     video_socket = new QUdpSocket;
     video_socket->bind(address, video_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
-    video_socket->setMulticastInterface(interface);
-    video_socket->joinMulticastGroup(groupAddress);
+    video_socket->joinMulticastGroup(groupAddress, interface);
     video_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     video_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1920 * 1080 * 16);
 
@@ -51,6 +50,7 @@ void VideoFrameReceiver::on_videoReadyRead()
         static qint32 num = 1;
         static qint32 size = 0;
         static qint64 timestamp = 0;
+        Q_UNUSED(timestamp)
         static VideoPack vp;
 
         PackageHeader *packageHead = (PackageHeader *)byteArray.data();

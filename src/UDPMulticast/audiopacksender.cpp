@@ -30,7 +30,7 @@ void AudioPackSender::run()
 
     audio_socket = new QUdpSocket;
     audio_socket->bind(address, audio_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
-    audio_socket->setMulticastInterface(interface);
+    audio_socket->joinMulticastGroup(groupAddress, interface);
     audio_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     audio_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);
     audio_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);

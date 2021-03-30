@@ -1,19 +1,15 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include <QBuffer>
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QDateTime>
 #include <QMessageBox>
-#include <QDesktopServices>
+// #include <QDesktopServices>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    m_startup(new StartUpDialog(this)),
-    command_timer(new QTimer(this)),
-    stuNum(0),
     availableCameras(QCameraInfo::availableCameras()),
     m_camera(new QCamera(QCameraInfo::defaultCamera(), this)),
     m_viewFinder(new VideoSurface(this)),
@@ -31,7 +27,13 @@ MainWindow::MainWindow(QWidget *parent) :
     file_port(8888),
     video_threadPool(new QThreadPool(this)),
     audio_threadPool(new QThreadPool(this)),
-    file_threadPool(new QThreadPool(this))
+    file_threadPool(new QThreadPool(this)),
+    m_startup(new StartUpDialog(this)),
+    command_timer(new QTimer(this)),
+    stuNum(0),
+    flag_startup(false),
+    m_textchat(new TextChatDialog(this)),
+    flag_text(false)
 {
     ui->setupUi(this);
 
@@ -58,6 +60,12 @@ MainWindow::~MainWindow()
     delete video_threadPool;
     delete audio_threadPool;
     delete file_threadPool;
+
+    if(flag_startup)
+    {
+        delete text_transceiver;
+    }
+
     delete ui;
 }
 
@@ -85,6 +93,12 @@ void MainWindow::closeEvent(QCloseEvent *)
     file_threadPool->clear();
     file_threadPool->waitForDone();
 
+    if(flag_startup)
+    {
+        text_transceiver->quit();
+        text_transceiver->wait();
+    }
+
     command_socket->writeDatagram(QString("Stop").toUtf8().data(), QString("Stop").toUtf8().size(), groupAddress, command_port);
 }
 
@@ -92,7 +106,7 @@ void MainWindow::initUdpConnections()
 {
     command_socket->close();
     command_socket->bind(m_address, command_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress); // 绑定地址端口
-    command_socket->setMulticastInterface(m_interface);                                                     // 设置组播网卡
+    command_socket->joinMulticastGroup(groupAddress, m_interface);                                          // 添加到组播，绑定组播网卡
     command_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);                                    // 尝试优化套接字以降低延迟
     command_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);                                // 设置套接字属性
     // command_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);                           // 本机禁止接收（本地测试中禁用）
@@ -156,22 +170,21 @@ void MainWindow::initUI()
         ui->cb_device->addItem(device.deviceName(), availableDevices.indexOf(device));
     }
 
-    // 隐藏主界面并显示启动界面
-    this->hide();
+    // 显示启动界面
     m_startup->show();
 }
 
 void MainWindow::initConnections()
 {
-    connect(m_startup, SIGNAL(multicastReady(QNetworkInterface,QHostAddress,QString)), this, SLOT(on_multicastReady(QNetworkInterface,QHostAddress,QString)));
-    connect(m_startup, SIGNAL(multicastNotReady()), this, SLOT(on_multicastNotReady()));
-    connect(m_startup, SIGNAL(startUp()), this, SLOT(on_startUp()));
-    connect(command_timer, SIGNAL(timeout()), this, SLOT(on_commandTimeOut()));
-    connect(command_socket, SIGNAL(readyRead()), this, SLOT(on_commandReadyRead()));
     connect(m_viewFinder, SIGNAL(videoFrameChanged(QVideoFrame)), this, SLOT(on_videoFrameChanged(QVideoFrame)));
     connect(screen_timer, SIGNAL(timeout()), this, SLOT(on_screenTimeOut()));
     connect(this, SIGNAL(volumeChanged(int)), this, SLOT(on_volumeChanged(int)));
     connect(screen_timer, SIGNAL(timeout()), this, SLOT(on_mouseMove()));    // 屏幕共享时标记鼠标位置
+    connect(m_startup, SIGNAL(multicastReady(QNetworkInterface,QHostAddress,QString)), this, SLOT(on_multicastReady(QNetworkInterface,QHostAddress,QString)));
+    connect(m_startup, SIGNAL(multicastNotReady()), this, SLOT(on_multicastNotReady()));
+    connect(m_startup, SIGNAL(startUp()), this, SLOT(on_startUp()));
+    connect(command_timer, SIGNAL(timeout()), this, SLOT(on_commandTimeOut()));
+    connect(m_textchat, SIGNAL(textSend(QString)), this, SLOT(on_textSend(QString)));
 }
 
 void MainWindow::initCamera()
@@ -185,87 +198,6 @@ void MainWindow::initCamera()
         if(ui->cb_camRes->findText(resolution) < 0)
         {
             ui->cb_camRes->addItem(resolution, viewSets.indexOf(viewSet));
-        }
-    }
-}
-
-void MainWindow::on_multicastReady(QNetworkInterface interface, QHostAddress address, QString name)
-{
-    m_interface = interface;
-    m_address = address;
-    m_name = name;
-
-    // 初始化 UDP 连接
-    initUdpConnections();
-
-    // 定时组播服务端 IP
-    command_timer->start(5000);
-}
-
-void MainWindow::on_multicastNotReady()
-{
-    command_timer->stop();
-}
-
-void MainWindow::on_startUp()
-{
-    this->show();
-}
-
-void MainWindow::on_commandTimeOut()
-{
-    // 定时组播服务端 IP
-    qint64 res;
-    QString tmp = "Teacher\n" + m_address.toString();
-    res = command_socket->writeDatagram(tmp.toUtf8().data(), tmp.toUtf8().size(), groupAddress, command_port);
-    if(res < 0)
-    {
-        qDebug() << "command_socket: Teacher IP Send Failed!";
-    }
-}
-
-void MainWindow::on_commandReadyRead()
-{
-    // 接收客户端发送信息
-    qint64 res;
-    QByteArray byteArray;
-
-    while(command_socket->hasPendingDatagrams())
-    {
-        byteArray.resize(command_socket->pendingDatagramSize());
-        res = command_socket->readDatagram(byteArray.data(), byteArray.size());
-        if(res < 0)
-        {
-            qDebug() << "command_socket: Read Datagram Failed!";
-        }
-
-        // 接收到学生信息
-        if(!QString(byteArray).indexOf("Student\n"))
-        {
-            QHostAddress stu(QString(byteArray).split("\n").at(1));
-            QString stuName = QString(byteArray).split("\n").at(2);
-            QString op = QString(byteArray).split("\n").at(3);
-            // qDebug() << stu << stuName << op;
-
-            if(op == "Connect")
-            {
-                if(!stuMap.contains(stu.toString()))
-                {
-                    stuNum++;
-                }
-                stuMap[stu.toString()] = stuName;
-            }
-            if(op == "Disconnect")
-            {
-                if(stuMap.contains(stu.toString()))
-                {
-                    QMap<QString, QString>::iterator it = stuMap.find(stu.toString());
-                    stuMap.erase(it);
-                    stuNum--;
-                }
-            }
-            emit studentConnected(stuNum);
-            return;
         }
     }
 }
@@ -284,12 +216,17 @@ void MainWindow::on_btn_screen_clicked()
     }
     else
     {
-        command_socket->writeDatagram(QString("Stop").toUtf8(), QString("Stop").toUtf8().size(), groupAddress, command_port);
-
         m_cursor->hide();
         screen_timer->stop();
         qDebug() << "Screen Share Stopped!";
+
+        // 终止视频传输时发送信号
+        video_threadPool->clear();
+        video_threadPool->waitForDone();
+        command_socket->writeDatagram(QString("Stop").toUtf8(), QString("Stop").toUtf8().size(), groupAddress, command_port);
+
         ui->videoViewer->clear();
+
         flag_screen = false;
         ui->btn_screenPen->setDisabled(true);
     }
@@ -336,11 +273,11 @@ void MainWindow::on_screenTimeOut()
     else
     {
         /*
-         * 本机测试中发现，单线程无法及时处理 720p 摄像头图像，
-         * 始终存在内存溢出问题，但是若存在多摄像头设备，
-         * 切换后则内存占用恢复正常。
+         * 本机测试中发现，单线程无法及时处理 720p 摄像头图像或者高分辨率桌面截图（4K），
+         * 始终存在内存溢出问题；
+         * 但是若存在多摄像头设备，切换后则内存占用恢复正常。
          * 疑似与 CPU 单核性能和系统调度有关？
-         * 暂时设为 720p 双线程处理。
+         * 故暂时设为 720p 双线程处理。
          */
         video_threadPool->setMaxThreadCount(2);
     }
@@ -367,11 +304,13 @@ void MainWindow::on_btn_camera_clicked()
     }
     else
     {
-        // 终止视频传输时发送信号
-        command_socket->writeDatagram(QString("Stop").toUtf8().data(), QString("Stop").toUtf8().size(), groupAddress, command_port);
-
         m_camera->stop();
         qDebug() << "Camera Stopped!";
+
+        video_threadPool->clear();
+        video_threadPool->waitForDone();
+        command_socket->writeDatagram(QString("Stop").toUtf8().data(), QString("Stop").toUtf8().size(), groupAddress, command_port);
+
         ui->videoViewer->clear();
 
         /*
@@ -664,7 +603,7 @@ void MainWindow::on_btn_fileTrans_clicked()
 void MainWindow::on_btn_signIn_clicked()
 {
     // 生成文件名
-    QString fileName = "SignIn_" + QDateTime::currentDateTime().toString("yyMMddhhmmss");
+    QString fileName = "SignIn_" + QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
 
     // 保存文件对话框
     fileName = QFileDialog::getSaveFileName(this,
@@ -685,20 +624,32 @@ void MainWindow::on_btn_signIn_clicked()
     }
 
     QTextStream stream(&file);
-    QString newLine = "Index\tIP\tName";
+    QString newLine = "Index\tIP\tName\n";
     stream << newLine;
 
     int index = 1;
     QMap<QString, QString>::iterator it;
     for(it = stuMap.begin(); it != stuMap.end(); it++)
     {
-        newLine = QString::number(index++) + "\t" + it.key() + "\t" + it.value();
+        newLine = QString::number(index++) + "\t" + it.key() + "\t" + it.value() + "\n";
         stream << newLine;
     }
     stream.flush();
     file.close();
 
     // QDesktopServices::openUrl(QFileInfo(file).absolutePath());  // 打开文件所在文件夹
+}
+
+void MainWindow::on_btn_textChat_clicked()
+{
+    if(!flag_text)
+    {
+        m_textchat->show();
+    }
+    else
+    {
+        m_textchat->hide();
+    }
 }
 
 void MainWindow::on_mouseMove()
@@ -712,4 +663,103 @@ void MainWindow::on_mouseMove()
         // qDebug() << "鼠标移动 " << point;
         oldPoint = point;
     }
+}
+
+void MainWindow::on_multicastReady(QNetworkInterface interface, QHostAddress address, QString name)
+{
+    m_interface = interface;
+    m_address = address;
+    m_name = name;
+
+    // 初始化 UDP 连接
+    initUdpConnections();
+    connect(command_socket, SIGNAL(readyRead()), this, SLOT(on_commandReadyRead()));
+    emit command_socket->readyRead();
+
+    // 定时组播服务端 IP
+    command_timer->start(5000);
+}
+
+void MainWindow::on_multicastNotReady()
+{
+    command_timer->stop();
+}
+
+void MainWindow::on_startUp()
+{
+    // 启动文字聊天线程
+    text_transceiver = new TextMsgTransceiver(m_interface, m_address, m_name);
+    connect(text_transceiver, SIGNAL(textAppend(QString)), this, SLOT(on_textAppend(QString)));
+    text_transceiver->start();
+
+    this->show();
+    flag_startup = true;
+}
+
+void MainWindow::on_commandTimeOut()
+{
+    // 定时组播服务端 IP
+    qint64 res;
+    QString tmp = "Teacher\n" + m_address.toString();
+    res = command_socket->writeDatagram(tmp.toUtf8().data(), tmp.toUtf8().size(), groupAddress, command_port);
+    if(res < 0)
+    {
+        qDebug() << "command_socket: Teacher IP Send Failed!";
+    }
+}
+
+void MainWindow::on_commandReadyRead()
+{
+    // 接收客户端发送信息
+    qint64 res;
+    QByteArray byteArray;
+
+    while(command_socket->hasPendingDatagrams())
+    {
+        byteArray.resize(command_socket->pendingDatagramSize());
+        res = command_socket->readDatagram(byteArray.data(), byteArray.size());
+        if(res < 0)
+        {
+            qDebug() << "command_socket: Read Datagram Failed!";
+        }
+
+        // 接收到学生信息
+        if(!QString(byteArray).indexOf("Student\n"))
+        {
+            QHostAddress stu(QString(byteArray).split("\n").at(1));
+            QString stuName = QString(byteArray).split("\n").at(2);
+            QString op = QString(byteArray).split("\n").at(3);
+            // qDebug() << stu << stuName << op;
+
+            if(op == "Connect")
+            {
+                if(!stuMap.contains(stu.toString()))
+                {
+                    stuNum++;
+                }
+                stuMap[stu.toString()] = stuName;
+            }
+            if(op == "Disconnect")
+            {
+                if(stuMap.contains(stu.toString()))
+                {
+                    QMap<QString, QString>::iterator it = stuMap.find(stu.toString());
+                    stuMap.erase(it);
+                    stuNum--;
+                }
+            }
+            emit studentConnected(stuNum);
+            return;
+        }
+    }
+}
+
+void MainWindow::on_textAppend(QString msg)
+{
+    emit textAppend(msg);
+}
+
+void MainWindow::on_textSend(QString body)
+{
+    QMetaObject::invokeMethod(text_transceiver, "on_textSend", Q_ARG(QString, body));
 }

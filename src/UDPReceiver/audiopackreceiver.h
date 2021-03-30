@@ -10,6 +10,7 @@
 class AudioPackReceiver : public QThread
 {
     Q_OBJECT
+
 public:
     AudioPackReceiver(QNetworkInterface interface, QHostAddress address);
     ~AudioPackReceiver() override;

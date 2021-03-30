@@ -13,15 +13,15 @@ FileSender::FileSender(QHostAddress address, QString fileName) :
 
 FileSender::~FileSender()
 {
-    file_socket->waitForDisconnected();
     file_socket->close();
     delete file_socket;
 }
 
 void FileSender::run()
 {
-    file_socket = new QTcpSocket;
     file_port = 8888;
+
+    file_socket = new QTcpSocket;
     file_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     file_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024 * 64);
 
@@ -62,7 +62,7 @@ void FileSender::run()
     // 延时发送文件，防止 TCP 粘包（非阻塞）
     QElapsedTimer timer;
     timer.start();
-    while(timer.elapsed() < 20)
+    while(timer.elapsed() < 500)
     {
         QCoreApplication::processEvents();
     }
@@ -98,4 +98,9 @@ void FileSender::run()
     }
 
     file.close();
+
+    file_socket->waitForBytesWritten();
+    file_socket->flush();
+
+    file_socket->waitForDisconnected();
 }

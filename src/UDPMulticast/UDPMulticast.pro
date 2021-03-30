@@ -31,6 +31,8 @@ SOURCES += \
         mainwindow.cpp \
         screenpen.cpp \
         startupdialog.cpp \
+        textchatdialog.cpp \
+        textmsgtransceiver.cpp \
         videoframesender.cpp \
         videosurface.cpp
 
@@ -40,6 +42,8 @@ HEADERS += \
         mainwindow.h \
         screenpen.h \
         startupdialog.h \
+        textchatdialog.h \
+        textmsgtransceiver.h \
         util.h \
         videoframesender.h \
         videosurface.h
@@ -47,7 +51,8 @@ HEADERS += \
 FORMS += \
         mainwindow.ui \
         screenpen.ui \
-        startupdialog.ui
+        startupdialog.ui \
+        textchatdialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

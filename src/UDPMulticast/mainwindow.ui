@@ -66,9 +66,9 @@
    <widget class="QPushButton" name="btn_camera">
     <property name="geometry">
      <rect>
-      <x>30</x>
+      <x>20</x>
       <y>510</y>
-      <width>100</width>
+      <width>80</width>
       <height>30</height>
      </rect>
     </property>
@@ -79,9 +79,9 @@
    <widget class="QPushButton" name="btn_screen">
     <property name="geometry">
      <rect>
-      <x>30</x>
+      <x>20</x>
       <y>470</y>
-      <width>100</width>
+      <width>80</width>
       <height>30</height>
      </rect>
     </property>
@@ -92,9 +92,9 @@
    <widget class="QComboBox" name="cb_camera">
     <property name="geometry">
      <rect>
-      <x>150</x>
+      <x>120</x>
       <y>510</y>
-      <width>300</width>
+      <width>320</width>
       <height>30</height>
      </rect>
     </property>
@@ -102,9 +102,9 @@
    <widget class="QPushButton" name="btn_audio">
     <property name="geometry">
      <rect>
-      <x>30</x>
+      <x>20</x>
       <y>550</y>
-      <width>100</width>
+      <width>80</width>
       <height>30</height>
      </rect>
     </property>
@@ -115,9 +115,9 @@
    <widget class="QComboBox" name="cb_device">
     <property name="geometry">
      <rect>
-      <x>150</x>
+      <x>120</x>
       <y>550</y>
-      <width>300</width>
+      <width>320</width>
       <height>30</height>
      </rect>
     </property>
@@ -125,9 +125,9 @@
    <widget class="QComboBox" name="cb_camRes">
     <property name="geometry">
      <rect>
-      <x>470</x>
+      <x>460</x>
       <y>510</y>
-      <width>300</width>
+      <width>320</width>
       <height>30</height>
      </rect>
     </property>
@@ -135,9 +135,9 @@
    <widget class="QSlider" name="slider_volume">
     <property name="geometry">
      <rect>
-      <x>470</x>
+      <x>460</x>
       <y>550</y>
-      <width>180</width>
+      <width>200</width>
       <height>30</height>
      </rect>
     </property>
@@ -160,7 +160,7 @@
    <widget class="QLabel" name="volume">
     <property name="geometry">
      <rect>
-      <x>650</x>
+      <x>660</x>
       <y>550</y>
       <width>120</width>
       <height>30</height>
@@ -176,9 +176,9 @@
    <widget class="QPushButton" name="btn_screenPen">
     <property name="geometry">
      <rect>
-      <x>470</x>
+      <x>460</x>
       <y>470</y>
-      <width>100</width>
+      <width>80</width>
       <height>30</height>
      </rect>
     </property>
@@ -189,9 +189,9 @@
    <widget class="QComboBox" name="cb_screenRes">
     <property name="geometry">
      <rect>
-      <x>150</x>
+      <x>120</x>
       <y>470</y>
-      <width>140</width>
+      <width>150</width>
       <height>30</height>
      </rect>
     </property>
@@ -199,9 +199,9 @@
    <widget class="QPushButton" name="btn_fileTrans">
     <property name="geometry">
      <rect>
-      <x>570</x>
+      <x>540</x>
       <y>470</y>
-      <width>100</width>
+      <width>80</width>
       <height>30</height>
      </rect>
     </property>
@@ -212,9 +212,9 @@
    <widget class="QPushButton" name="btn_signIn">
     <property name="geometry">
      <rect>
-      <x>670</x>
+      <x>620</x>
       <y>470</y>
-      <width>100</width>
+      <width>80</width>
       <height>30</height>
      </rect>
     </property>
@@ -225,11 +225,24 @@
    <widget class="QComboBox" name="cb_screenHz">
     <property name="geometry">
      <rect>
-      <x>310</x>
+      <x>290</x>
       <y>470</y>
-      <width>140</width>
+      <width>150</width>
       <height>30</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_textChat">
+    <property name="geometry">
+     <rect>
+      <x>700</x>
+      <y>470</y>
+      <width>80</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>TextChat</string>
     </property>
    </widget>
   </widget>

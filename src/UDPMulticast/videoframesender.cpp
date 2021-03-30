@@ -3,8 +3,6 @@
 #include <QBuffer>
 #include <QDateTime>
 
-#include <QThread>
-
 VideoFrameSender::VideoFrameSender(QNetworkInterface interface,
                                    QHostAddress address,
                                    QImage image,
@@ -37,10 +35,10 @@ void VideoFrameSender::run()
     // 初始化 video_socket
     video_socket = new QUdpSocket;
     video_socket->bind(address, video_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);   // 绑定地址端口
-    video_socket->setMulticastInterface(interface);                                                     // 设置组播网卡
+    video_socket->joinMulticastGroup(groupAddress, interface);                                          // 添加到组播，绑定组播网卡
     video_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);                                  // 尝试优化套接字以降低延迟
     video_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);                              // 设置 TTL 属性
-    video_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);                         // 本机禁止接收
+    // video_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);                         // 本机禁止接收
     video_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1920 * 1080 * 16);       // 缓冲区最大存储 4 张 1080p 位图
 
     // 暂存帧图像
