@@ -20,6 +20,12 @@
 
 * 支持多线程收发数据，避免单线程造成 GUI 卡顿。
 
+* 支持文件传输，基于 TCP 协议。
+
+* 支持文本消息发送。
+
+* 支持学生签到表导出。
+
 ## 目前存在的问题
 * 使用无线网卡时，UDP 组播极为 **不稳定** ，收发数据包均存在严重丢包问题。推荐使用 **有线网卡** 。
 
@@ -30,7 +36,9 @@
 * 可用设备列表不能实时刷新，使用设备过程中移除设备可能造成程序崩溃，新插入设备不会自动识别，需要关闭对应功能后才能刷新设备列表。
 
 ## 后续计划实现的功能
-文件传输，文字通信，学生签到等。
+* 尝试使用 ffmpeg 对视频流和音频流进行编码，降低 CPU 占用。
+
+* 尝试支持在广域网运行。
 
 ## 参考资料
 * [Qt Documentation](https://doc.qt.io/)
@@ -45,6 +53,8 @@
 
 * [QT音频开发：使用QAudioInput+QAudioOutput实现录音机功能，支持选择指定声卡录音，指定扬声器放音。](https://blog.csdn.net/xiaolong1126626497/article/details/105669037)
 
+* [Qt实现tcp发送和接收文件](https://blog.csdn.net/weixin_40355471/article/details/110391887)
+
 * [Qt多网卡组播问题解决方法](https://blog.csdn.net/sun_xf1/article/details/106423552)
 
 * [海天鹰屏幕笔](https://github.com/sonichy/HTYScreenPen)
@@ -53,9 +63,13 @@
 
 * [Qt QRunnable的使用](https://blog.csdn.net/qq_43711348/article/details/103983857)
 
+* [QRunnable中，如何接收tcp连接信息](https://jingyan.baidu.com/article/dca1fa6f140f54f1a440520b.html)
+
 * [QT编程问题小结（编译、多线程、UDP Socket等）](https://blog.csdn.net/rabbitjerry/article/details/70947807)
 
 * [QT基于UDP通信的多线程编程问题](https://blog.csdn.net/kamereon/article/details/49582617)
+
+* [解决 Qt 对象跨线程调用问题](https://blog.csdn.net/u012321968/article/details/108214644)
 
 ## 声明
 该项目为大学本科毕业设计，仅供学习交流使用。
