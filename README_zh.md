@@ -6,7 +6,7 @@
 ## 已实现的功能
 * 基于 **UDP 组播** 实现了基本的多媒体传输功能，包括摄像头、桌面共享，语音、立体声混音设备等数据传输。
 
-* 支持 1080p 视频传输。（由于 **CPU** 和 **网络带宽** 要求较高，暂时限制为 720p）
+* 支持 1080p@30Hz 或 720p@60Hz 视频传输。（对于 **CPU** 和 **网络带宽** 要求较高）
 
 * 支持摄像头、声音输入输出设备动态切换。
 
@@ -29,7 +29,7 @@
 ## 目前存在的问题
 * 使用无线网卡时，UDP 组播极为 **不稳定** ，收发数据包均存在严重丢包问题。推荐使用 **有线网卡** 。
 
-* 目前摄像头和桌面画面由 CPU（？）直接编码为 **JPEG** 格式进行传输，原始画面分辨率高于 **720p** 会造成卡顿。
+* 目前摄像头和桌面画面由 CPU（？）直接编码为 **JPEG** 格式并缩放进行传输，原始画面分辨率高于 **1080p** 会造成卡顿。
 
 * Linux 下获取的音频/视频设备名称 **不明确** （由设备驱动决定），声音设备列表中大多数设备不可用。（多数是声卡硬件原始预留的端口，未连接任何物理设备）
 
@@ -37,8 +37,6 @@
 
 ## 后续计划实现的功能
 * 尝试使用 ffmpeg 对视频流和音频流进行编码，降低 CPU 占用。
-
-* 尝试支持在广域网运行。
 
 ## 参考资料
 * [Qt Documentation](https://doc.qt.io/)
@@ -57,6 +55,8 @@
 
 * [Qt多网卡组播问题解决方法](https://blog.csdn.net/sun_xf1/article/details/106423552)
 
+* [Qtliveradio](https://github.com/haidragon/Qtliveradio)
+
 * [海天鹰屏幕笔](https://github.com/sonichy/HTYScreenPen)
 
 * [QT多线程的使用](https://www.cnblogs.com/coolcpp/p/qt-thread.html)
@@ -70,6 +70,8 @@
 * [QT基于UDP通信的多线程编程问题](https://blog.csdn.net/kamereon/article/details/49582617)
 
 * [解决 Qt 对象跨线程调用问题](https://blog.csdn.net/u012321968/article/details/108214644)
+
+* [QMap 的增删改查](https://blog.csdn.net/hejinjing_tom_com/article/details/48103455)
 
 ## 声明
 该项目为大学本科毕业设计，仅供学习交流使用。

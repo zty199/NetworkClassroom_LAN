@@ -83,6 +83,7 @@ private:
     bool flag_text;
 
     void initUdpConnections();
+    void initCamDevice();
     void initInputDevice();
     void initUI();
     void initConnections();

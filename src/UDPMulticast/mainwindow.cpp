@@ -11,8 +11,6 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     availableCameras(QCameraInfo::availableCameras()),
-    m_camera(new QCamera(QCameraInfo::defaultCamera(), this)),
-    m_viewFinder(new VideoSurface(this)),
     flag_camera(false),
     m_screen(QApplication::primaryScreen()),
     m_cursor(new QLabel),
@@ -36,6 +34,9 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    // 初始化摄像头设备
+    initCamDevice();
+
     // 初始化音频输入设备
     initInputDevice();
 
@@ -44,12 +45,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // 初始化信号槽
     initConnections();
-
-    // 设置摄像头图像源
-    m_camera->setViewfinder(m_viewFinder);
-
-    // 初始化计时器状态（用于桌面共享）
-    screen_timer->stop();
 
     qDebug() << "Initialization Finished!";
 }
@@ -111,6 +106,15 @@ void MainWindow::initUdpConnections()
     // command_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);                           // 本机禁止接收（本地测试中禁用）
 }
 
+void MainWindow::initCamDevice()
+{
+    m_viewFinder = new VideoSurface(this);
+    m_camera = new QCamera(QCameraInfo::defaultCamera(), this);
+
+    // 设置摄像头图像源
+    m_camera->setViewfinder(m_viewFinder);
+}
+
 void MainWindow::initInputDevice()
 {
     // 初始化默认音频输入格式
@@ -138,7 +142,6 @@ void MainWindow::initUI()
     // 初始化鼠标标记
     m_cursor->setWindowFlag(Qt::FramelessWindowHint, true);
     m_cursor->setWindowFlag(Qt::WindowStaysOnTopHint, true);
-    // m_cursor->setAttribute(Qt::WA_TranslucentBackground, true);
     m_cursor->resize(5, 5);
     m_cursor->setAutoFillBackground(true);
     m_cursor->setStyleSheet("background-color: rgb(255, 255, 255);");
@@ -175,7 +178,6 @@ void MainWindow::initUI()
 
 void MainWindow::initConnections()
 {
-    connect(m_viewFinder, SIGNAL(videoFrameChanged(QVideoFrame)), this, SLOT(on_videoFrameChanged(QVideoFrame)));
     connect(screen_timer, SIGNAL(timeout()), this, SLOT(on_screenTimeOut()));
     connect(this, SIGNAL(volumeChanged(int)), this, SLOT(on_volumeChanged(int)));
     connect(screen_timer, SIGNAL(timeout()), this, SLOT(on_mouseMove()));    // 屏幕共享时标记鼠标位置
@@ -239,9 +241,10 @@ void MainWindow::on_cb_screenRes_currentIndexChanged(int index)
 {
     Q_UNUSED(index)
     screenRes = ui->cb_screenRes->currentData().value<QSize>();
+
+    // 限制 1080p@30Hz
     if(screenRes == QSize(1920, 1080))
     {
-        // 1080p 分辨率限制 30Hz
         ui->cb_screenHz->removeItem(1);
     }
     else
@@ -292,18 +295,15 @@ void MainWindow::on_screenTimeOut()
 
     image = image.scaled(image.size().boundedTo(screenRes), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
-    if(image.size().height() < 720)
+    if(image.size().height() < 1080)
     {
         video_threadPool->setMaxThreadCount(1);
     }
     else
     {
         /*
-         * 本机测试中发现，单线程无法及时处理 720p 摄像头图像或者高分辨率桌面截图（4K），
-         * 始终存在内存溢出问题；
-         * 但是若存在多摄像头设备，切换后则内存占用恢复正常。
-         * 疑似与 CPU 单核性能和系统调度有关？
-         * 故暂时设为 720p 双线程处理。
+         * 对 CPU 单核性能较弱的机型来说，建议使用多线程处理 1080p 图像
+         * 由于接收端为单线程接收，不建议使用过多线程
          */
         video_threadPool->setMaxThreadCount(2);
     }
@@ -316,6 +316,7 @@ void MainWindow::on_btn_camera_clicked()
     if(!flag_camera)
     {
         m_camera->start();
+        connect(m_viewFinder, SIGNAL(videoFrameChanged(QVideoFrame)), this, SLOT(on_videoFrameChanged(QVideoFrame)));
         qDebug() << "Camera Started!";
 
         // 摄像头设备启动后才能获取支持的图像格式列表
@@ -330,6 +331,7 @@ void MainWindow::on_btn_camera_clicked()
     }
     else
     {
+        m_viewFinder->disconnect();
         m_camera->stop();
         qDebug() << "Camera Stopped!";
 
@@ -372,7 +374,7 @@ void MainWindow::on_btn_camera_clicked()
             for(int i = 0; i < availableCameras.size(); i++)
             {
                 ui->cb_camera->addItem(availableCameras.at(i).description(), i);
-                if(availableDevices.at(i).deviceName() == curCam.deviceName())
+                if(availableCameras.at(i).deviceName() == curCam.deviceName())
                 {
                     index = i;
                 }
@@ -394,6 +396,7 @@ void MainWindow::on_cb_camera_currentIndexChanged(int index)
 {
     if(flag_camera)
     {
+        m_viewFinder->disconnect();
         m_camera->stop();
         ui->videoViewer->clear();
         ui->cb_camRes->disconnect();
@@ -402,16 +405,15 @@ void MainWindow::on_cb_camera_currentIndexChanged(int index)
     }
 
     delete m_camera;
-    m_viewFinder->disconnect();
     delete m_viewFinder;
     m_viewFinder = new VideoSurface(this);
     m_camera = new QCamera(availableCameras.at(index));
     m_camera->setViewfinder(m_viewFinder);
-    connect(m_viewFinder, SIGNAL(videoFrameChanged(QVideoFrame)), this, SLOT(on_videoFrameChanged(QVideoFrame)));
 
     if(flag_camera)
     {
         m_camera->start();
+        connect(m_viewFinder, SIGNAL(videoFrameChanged(QVideoFrame)), this, SLOT(on_videoFrameChanged(QVideoFrame)));
         initCamera();
     }
 
@@ -441,6 +443,9 @@ void MainWindow::on_videoFrameChanged(QVideoFrame frame)
                  tmp.bytesPerLine(),
                  QVideoFrame::imageFormatFromPixelFormat(tmp.pixelFormat()));
 
+    // 释放拷贝内存
+    tmp.unmap();
+
     // 如果图像未变化则不发送（占 CPU，需要其他方式处理）
     /*
     static QImage oldImage;
@@ -460,7 +465,7 @@ void MainWindow::on_videoFrameChanged(QVideoFrame frame)
 #endif
     image = image.scaled(image.size().boundedTo(QSize(1920, 1080)), Qt::KeepAspectRatio, Qt::SmoothTransformation); // 分辨率高于 1080p 则压缩
 
-    if(image.size().height() < 720)
+    if(image.size().height() < 1080)
     {
         video_threadPool->setMaxThreadCount(1);
     }
@@ -555,8 +560,8 @@ void MainWindow::on_cb_device_currentIndexChanged(int index)
     if(flag_audio)
     {
         m_audioDevice = m_audioInput->start();
-        m_audioInput->setVolume(qreal(ui->slider_volume->value()) / 100);
         connect(m_audioDevice, SIGNAL(readyRead()), this, SLOT(on_deviceReadyRead()));
+        m_audioInput->setVolume(qreal(ui->slider_volume->value()) / 100);
     }
 
     qDebug() << "Input Device: " << info.deviceName();

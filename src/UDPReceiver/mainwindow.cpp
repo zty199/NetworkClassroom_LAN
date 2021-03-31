@@ -126,20 +126,26 @@ void MainWindow::on_videoFrameReceived(QImage image)
 
 void MainWindow::on_btn_audio_clicked()
 {
+    // 按钮仅静音当前音频流，不关闭设备
     static int curVolume;
 
     if(!flag_audio)
     {
-        // 仅静音当前音频流
         ui->slider_volume->setValue(curVolume);
-        qDebug() << "Audio Share Unmuted!";
         flag_audio = true;
     }
     else
     {
-        curVolume = ui->slider_volume->value();
+        if(!ui->slider_volume->value())
+        {
+            curVolume = 100;
+        }
+        else
+        {
+            curVolume = ui->slider_volume->value();
+        }
+
         ui->slider_volume->setValue(0);
-        qDebug() << "Audio Share Muted!";
         flag_audio = false;
 
         // 刷新音频输出可用设备列表
@@ -243,10 +249,17 @@ void MainWindow::on_slider_volume_valueChanged(int value)
     // 滑动条调节音频输出设备音量（仅调节音频流音量而非设备全局音量），范围 0.0 ~ 1.0
     m_audioOutput->setVolume(qreal(value) / 100);
     emit this->volumeChanged(value);
+    if(!value)
+    {
+        qDebug() << "Audio Share Muted!";
+        flag_audio = false;
+        return;
+    }
 
     // 音量调节则解除静音
     if(!flag_audio)
     {
+        qDebug() << "Audio Share Unmuted!";
         flag_audio = true;
     }
 }

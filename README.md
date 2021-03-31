@@ -6,7 +6,7 @@
 ## Realized Features
 * Support basic multimedia transmission based on **UDP Multicast** , including cam, screen share, mic, stereo mixer, etc.
 
-* Support 1080p video transmission. (Temporarily limit to 720p because of HIGH **CPU** and **Network** consumption)
+* Support 1080p@30Hz or 720p@60Hz video transmission. (Because of HIGH **CPU** and **Network** consumption)
 
 * Support dynamic switch between different devices (cam / audio IO).
 
@@ -29,7 +29,7 @@
 ## Existing Issues
 * When using wireless cards, UDP Multicast is extremely **Unreliable**, both sending and receiving ends meet serious packet loss. **Ethernet cards** recommended.
 
-* Video frames captured from cam and screen are directly encoded into **JPEG** by CPU(?), source resolution higher than **720p** can cause serious lags on GUI.
+* Video frames captured from cam and screen are directly encoded into **JPEG** and scaled by CPU(?), source resolution higher than **1080p** may cause serious lags on GUI.
 
 * Cam / Audio IO devices' names are Inaccurate on Linux (based on device drivers), most of audio IO devices shown in combobox don't work (not physically connected to any devices, just ports reserved).
 
@@ -37,8 +37,6 @@
 
 ## Future Plan
 * Try to use ffmpeg to deal with audio and video.
-
-* Try to make it work on WAN.
 
 ## Reference
 * [Qt Documentation](https://doc.qt.io/)
@@ -57,6 +55,8 @@
 
 * [Qt多网卡组播问题解决方法](https://blog.csdn.net/sun_xf1/article/details/106423552)
 
+* [Qtliveradio](https://github.com/haidragon/Qtliveradio)
+
 * [海天鹰屏幕笔](https://github.com/sonichy/HTYScreenPen)
 
 * [QT多线程的使用](https://www.cnblogs.com/coolcpp/p/qt-thread.html)
@@ -70,6 +70,8 @@
 * [QT基于UDP通信的多线程编程问题](https://blog.csdn.net/kamereon/article/details/49582617)
 
 * [解决 Qt 对象跨线程调用问题](https://blog.csdn.net/u012321968/article/details/108214644)
+
+* [QMap 的增删改查](https://blog.csdn.net/hejinjing_tom_com/article/details/48103455)
 
 ## Clarification
 This project is my graduation design for undergraduates. Only for study and communication.
