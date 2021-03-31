@@ -6,6 +6,7 @@
 #include <QTcpSocket>
 
 #include "util.h"
+#include "config.h"
 
 class FileSender : public QRunnable
 {

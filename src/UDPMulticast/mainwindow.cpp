@@ -22,9 +22,8 @@ MainWindow::MainWindow(QWidget *parent) :
     availableDevices(QAudioDeviceInfo::availableDevices(QAudio::AudioInput)),
     flag_audio(false),
     command_socket(new QUdpSocket(this)),
-    groupAddress("239.0.0.1"),
-    command_port(8887),
-    file_port(8888),
+    groupAddress(GROUP_ADDR),
+    command_port(COMMAND_PORT),
     video_threadPool(new QThreadPool(this)),
     audio_threadPool(new QThreadPool(this)),
     file_threadPool(new QThreadPool(this)),
@@ -207,8 +206,12 @@ void MainWindow::on_btn_screen_clicked()
     if(!flag_screen)
     {
         ui->btn_screenPen->setEnabled(true);    // 启用屏幕画笔按钮
-        screen_timer->start(screenTimer);       // 启用计时器开始截图
-        m_cursor->show();
+
+        screen_timer->setInterval(screenTimer);
+        screen_timer->start();                  // 启用计时器开始截图
+
+        m_cursor->show();                       // 显示指针标记
+
         qDebug() << "Screen Share Started!";
         flag_screen = true;
         flag_camera = true;
@@ -236,12 +239,35 @@ void MainWindow::on_cb_screenRes_currentIndexChanged(int index)
 {
     Q_UNUSED(index)
     screenRes = ui->cb_screenRes->currentData().value<QSize>();
+    if(screenRes == QSize(1920, 1080))
+    {
+        // 1080p 分辨率限制 30Hz
+        ui->cb_screenHz->removeItem(1);
+    }
+    else
+    {
+        if(ui->cb_screenHz->count() == 1)
+        {
+            ui->cb_screenHz->addItem("60Hz", 15);
+        }
+    }
 }
 
 void MainWindow::on_cb_screenHz_currentIndexChanged(int index)
 {
     Q_UNUSED(index)
+    if(flag_screen)
+    {
+        screen_timer->stop();
+    }
+
     screenTimer = ui->cb_screenHz->currentData().value<int>();
+    screen_timer->setInterval(screenTimer);
+
+    if(flag_screen)
+    {
+        screen_timer->start();
+    }
 }
 
 void MainWindow::on_btn_screenPen_clicked()

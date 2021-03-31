@@ -16,8 +16,8 @@ AudioPackReceiver::~AudioPackReceiver()
 
 void AudioPackReceiver::run()
 {
-    groupAddress = QHostAddress("239.0.0.1");
-    audio_port = 8889;
+    groupAddress = GROUP_ADDR;
+    audio_port = AUDIO_PORT;
 
     audio_socket = new QUdpSocket;
     audio_socket->bind(address, audio_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);

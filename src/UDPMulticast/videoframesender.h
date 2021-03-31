@@ -7,6 +7,7 @@
 #include <QNetworkInterface>
 
 #include "util.h"
+#include "config.h"
 
 class VideoFrameSender : public QRunnable
 {

@@ -29,8 +29,8 @@ void VideoFrameSender::run()
     // 回传图像至主线程（避免 GUI 卡顿）
     QMetaObject::invokeMethod(parent, "on_videoFrameSent", Q_ARG(QImage, *image));
 
-    groupAddress = QHostAddress("239.0.0.1");
-    video_port = 8888;
+    groupAddress = GROUP_ADDR;
+    video_port = VIDEO_PORT;
 
     // 初始化 video_socket
     video_socket = new QUdpSocket;
@@ -52,8 +52,8 @@ void VideoFrameSender::run()
     qint32 dataLength = buffer.data().size();
     uchar *dataBuffer = (uchar *)buffer.data().data();
 
-    qint32 packetNum = dataLength / UDP_MAX_SIZE;
-    qint32 lastPacketSize = dataLength % UDP_MAX_SIZE;
+    qint32 packetNum = dataLength / PACKET_MAX_SIZE;
+    qint32 lastPacketSize = dataLength % PACKET_MAX_SIZE;
     qint32 currentPacketIndex = 0;
     if(lastPacketSize != 0)
     {
@@ -66,11 +66,11 @@ void VideoFrameSender::run()
     packageHead.DataPackageNum = packetNum;
     packageHead.DataPackageTimeStamp = QDateTime::currentMSecsSinceEpoch();
 
-    uchar frameBuffer[sizeof(packageHead) + UDP_MAX_SIZE];
-    memset(frameBuffer, 0, sizeof(packageHead) + UDP_MAX_SIZE);
+    uchar frameBuffer[sizeof(packageHead) + PACKET_MAX_SIZE];
+    memset(frameBuffer, 0, sizeof(packageHead) + PACKET_MAX_SIZE);
 
     // 发送空数据包（仅包含帧数据包大小）
-    packageHead.TransPackageSize = packageHead.TransPackageHdrSize + UDP_MAX_SIZE;
+    packageHead.TransPackageSize = packageHead.TransPackageHdrSize + PACKET_MAX_SIZE;
     packageHead.DataPackageCurrIndex = 0;
     packageHead.DataPackageOffset = 0;
     memcpy(frameBuffer, &packageHead, packageHead.TransPackageHdrSize);
@@ -86,11 +86,11 @@ void VideoFrameSender::run()
     {
         if(currentPacketIndex < (packetNum - 1))
         {
-            packageHead.TransPackageSize = packageHead.TransPackageHdrSize + UDP_MAX_SIZE;
+            packageHead.TransPackageSize = packageHead.TransPackageHdrSize + PACKET_MAX_SIZE;
             packageHead.DataPackageCurrIndex = currentPacketIndex + 1;
-            packageHead.DataPackageOffset = currentPacketIndex * UDP_MAX_SIZE;
+            packageHead.DataPackageOffset = currentPacketIndex * PACKET_MAX_SIZE;
             memcpy(frameBuffer, &packageHead, packageHead.TransPackageHdrSize);
-            memcpy(frameBuffer + packageHead.TransPackageHdrSize, dataBuffer + packageHead.DataPackageOffset, UDP_MAX_SIZE);
+            memcpy(frameBuffer + packageHead.TransPackageHdrSize, dataBuffer + packageHead.DataPackageOffset, PACKET_MAX_SIZE);
 
             res = video_socket->writeDatagram(
                         (const char *)frameBuffer, packageHead.TransPackageSize,
@@ -107,7 +107,7 @@ void VideoFrameSender::run()
         {
             packageHead.TransPackageSize = packageHead.TransPackageHdrSize + lastPacketSize;
             packageHead.DataPackageCurrIndex = currentPacketIndex + 1;
-            packageHead.DataPackageOffset = currentPacketIndex * UDP_MAX_SIZE;
+            packageHead.DataPackageOffset = currentPacketIndex * PACKET_MAX_SIZE;
             memcpy(frameBuffer, &packageHead, packageHead.TransPackageHdrSize);
             memcpy(frameBuffer + packageHead.TransPackageHdrSize, dataBuffer + packageHead.DataPackageOffset, lastPacketSize);
 

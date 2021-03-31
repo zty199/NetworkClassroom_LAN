@@ -6,6 +6,7 @@
 #include <QNetworkInterface>
 
 #include "util.h"
+#include "config.h"
 
 class AudioPackSender : public QRunnable
 {

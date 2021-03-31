@@ -20,8 +20,8 @@ TextMsgTransceiver::~TextMsgTransceiver()
 
 void TextMsgTransceiver::run()
 {
-    groupAddress = QHostAddress("239.0.0.1");
-    text_port = 8890;
+    groupAddress = GROUP_ADDR;
+    text_port = TEXT_PORT;
 
     text_socket = new QUdpSocket;
     text_socket->bind(address, text_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);

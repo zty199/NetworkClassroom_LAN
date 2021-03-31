@@ -64,10 +64,6 @@ private:
     QHostAddress groupAddress;
     quint16 command_port;
 
-    QTcpSocket *file_socket;
-    qint64 file_port;
-    QString fileSent;
-
     QThreadPool *video_threadPool;
     QThreadPool *audio_threadPool;
     QThreadPool *file_threadPool;

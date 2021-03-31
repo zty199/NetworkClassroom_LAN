@@ -36,6 +36,7 @@ SOURCES += \
 
 HEADERS += \
         audiopackreceiver.h \
+        config.h \
         filereceiver.h \
         mainwindow.h \
         startupdialog.h \

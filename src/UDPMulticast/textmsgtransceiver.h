@@ -5,6 +5,8 @@
 #include <QUdpSocket>
 #include <QNetworkInterface>
 
+#include "config.h"
+
 class TextMsgTransceiver : public QThread
 {
     Q_OBJECT

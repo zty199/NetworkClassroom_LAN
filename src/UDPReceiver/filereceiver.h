@@ -7,6 +7,7 @@
 #include <QFileInfo>
 
 #include "util.h"
+#include "config.h"
 
 class FileReceiver : public QThread
 {

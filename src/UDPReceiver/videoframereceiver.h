@@ -7,6 +7,7 @@
 #include <QImage>
 
 #include "util.h"
+#include "config.h"
 
 class VideoFrameReceiver : public QThread
 {

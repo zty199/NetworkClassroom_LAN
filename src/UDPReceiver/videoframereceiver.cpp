@@ -16,8 +16,8 @@ VideoFrameReceiver::~VideoFrameReceiver()
 
 void VideoFrameReceiver::run()
 {
-    groupAddress = QHostAddress("239.0.0.1");
-    video_port = 8888;
+    groupAddress = GROUP_ADDR;
+    video_port = VIDEO_PORT;
 
     video_socket = new QUdpSocket;
     video_socket->bind(address, video_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);

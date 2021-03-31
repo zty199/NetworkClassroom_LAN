@@ -25,8 +25,8 @@ AudioPackSender::~AudioPackSender()
 
 void AudioPackSender::run()
 {
-    groupAddress = QHostAddress("239.0.0.1");
-    audio_port = 8889;
+    groupAddress = GROUP_ADDR;
+    audio_port = AUDIO_PORT;
 
     audio_socket = new QUdpSocket;
     audio_socket->bind(address, audio_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
@@ -40,8 +40,8 @@ void AudioPackSender::run()
     qint32 dataLength = ap->len;
     uchar *dataBuffer = (uchar *)ap->data;
 
-    qint32 packetNum = dataLength / UDP_MAX_SIZE;
-    qint32 lastPacketSize = dataLength % UDP_MAX_SIZE;
+    qint32 packetNum = dataLength / PACKET_MAX_SIZE;
+    qint32 lastPacketSize = dataLength % PACKET_MAX_SIZE;
     qint32 currentPacketIndex = 0;
     if(lastPacketSize != 0)
     {
@@ -54,10 +54,10 @@ void AudioPackSender::run()
     packageHead.DataPackageNum = packetNum;
     packageHead.DataPackageTimeStamp = QDateTime::currentMSecsSinceEpoch();
 
-    uchar frameBuffer[sizeof(packageHead) + UDP_MAX_SIZE];
-    memset(frameBuffer, 0, sizeof(packageHead) + UDP_MAX_SIZE);
+    uchar frameBuffer[sizeof(packageHead) + PACKET_MAX_SIZE];
+    memset(frameBuffer, 0, sizeof(packageHead) + PACKET_MAX_SIZE);
 
-    packageHead.TransPackageSize = packageHead.TransPackageHdrSize + UDP_MAX_SIZE;
+    packageHead.TransPackageSize = packageHead.TransPackageHdrSize + PACKET_MAX_SIZE;
     packageHead.DataPackageCurrIndex = 0;
     packageHead.DataPackageOffset = 0;
     memcpy(frameBuffer, &packageHead, packageHead.TransPackageHdrSize);
@@ -73,11 +73,11 @@ void AudioPackSender::run()
     {
         if(currentPacketIndex < (packetNum - 1))
         {
-            packageHead.TransPackageSize = packageHead.TransPackageHdrSize + UDP_MAX_SIZE;
+            packageHead.TransPackageSize = packageHead.TransPackageHdrSize + PACKET_MAX_SIZE;
             packageHead.DataPackageCurrIndex = currentPacketIndex + 1;
-            packageHead.DataPackageOffset = currentPacketIndex * UDP_MAX_SIZE;
+            packageHead.DataPackageOffset = currentPacketIndex * PACKET_MAX_SIZE;
             memcpy(frameBuffer, &packageHead, packageHead.TransPackageHdrSize);
-            memcpy(frameBuffer + packageHead.TransPackageHdrSize, dataBuffer + packageHead.DataPackageOffset, UDP_MAX_SIZE);
+            memcpy(frameBuffer + packageHead.TransPackageHdrSize, dataBuffer + packageHead.DataPackageOffset, PACKET_MAX_SIZE);
 
             res = audio_socket->writeDatagram(
                         (const char *)frameBuffer, packageHead.TransPackageSize,
@@ -94,7 +94,7 @@ void AudioPackSender::run()
         {
             packageHead.TransPackageSize = packageHead.TransPackageHdrSize + lastPacketSize;
             packageHead.DataPackageCurrIndex = currentPacketIndex + 1;
-            packageHead.DataPackageOffset = currentPacketIndex * UDP_MAX_SIZE;
+            packageHead.DataPackageOffset = currentPacketIndex * PACKET_MAX_SIZE;
             memcpy(frameBuffer, &packageHead, packageHead.TransPackageHdrSize);
             memcpy(frameBuffer + packageHead.TransPackageHdrSize, dataBuffer + packageHead.DataPackageOffset, lastPacketSize);
 

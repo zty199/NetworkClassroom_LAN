@@ -19,7 +19,7 @@ FileSender::~FileSender()
 
 void FileSender::run()
 {
-    file_port = 8888;
+    file_port = FILE_PORT;
 
     file_socket = new QTcpSocket;
     file_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
@@ -45,15 +45,15 @@ void FileSender::run()
     qint64 res;
     QByteArray byteArray;
 
-    qint32 packetNum = fileSize / UDP_MAX_SIZE;
-    qint32 lastPacketSize = fileSize % UDP_MAX_SIZE;
+    qint32 packetNum = fileSize / PACKET_MAX_SIZE;
+    qint32 lastPacketSize = fileSize % PACKET_MAX_SIZE;
     qint32 currentPacketIndex = 0;
     if(lastPacketSize != 0)
     {
         packetNum++;
     }
 
-    res = file_socket->write(tmp.toUtf8().data(), UDP_MAX_SIZE);
+    res = file_socket->write(tmp.toUtf8().data(), PACKET_MAX_SIZE);
     if(res < 0)
     {
         qDebug() << "file_socket: File Info Send Failed!";
@@ -71,9 +71,9 @@ void FileSender::run()
     {
         if(currentPacketIndex < (packetNum - 1))
         {
-            byteArray = file.read(UDP_MAX_SIZE);
+            byteArray = file.read(PACKET_MAX_SIZE);
 
-            res = file_socket->write(byteArray.data(), UDP_MAX_SIZE);
+            res = file_socket->write(byteArray.data(), PACKET_MAX_SIZE);
 
             if(res < 0)
             {

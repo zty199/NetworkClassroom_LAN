@@ -19,7 +19,7 @@ FileReceiver::~FileReceiver()
 void FileReceiver::run()
 {
     file_server = new QTcpServer;
-    file_port = 8888;
+    file_port = FILE_PORT;
 
     file_server->listen(m_address, file_port);
     connect(file_server, SIGNAL(newConnection()), this, SLOT(on_newConnection()), Qt::DirectConnection);

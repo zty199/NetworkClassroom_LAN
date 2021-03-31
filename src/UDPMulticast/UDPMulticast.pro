@@ -38,6 +38,7 @@ SOURCES += \
 
 HEADERS += \
         audiopacksender.h \
+        config.h \
         filesender.h \
         mainwindow.h \
         screenpen.h \
