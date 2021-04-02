@@ -8,7 +8,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     availableDevices(QAudioDeviceInfo::availableDevices(QAudio::AudioOutput)),
     flag_audio(true),
-    command_socket(new QUdpSocket(this)),
+    commandsend_socket(new QUdpSocket(this)),
+    commandrecv_socket(new QUdpSocket(this)),
     groupAddress(GROUP_ADDR),
     command_port(COMMAND_PORT),
     m_startup(new StartUpDialog(this)),
@@ -36,8 +37,10 @@ MainWindow::~MainWindow()
         delete text_transceiver;
     }
 
-    command_socket->close();
-    delete command_socket;
+    commandsend_socket->close();
+    commandrecv_socket->close();
+    delete commandsend_socket;
+    delete commandrecv_socket;
 
     command_timer->stop();
     delete command_timer;
@@ -50,7 +53,7 @@ MainWindow::~MainWindow()
 void MainWindow::closeEvent(QCloseEvent *)
 {
     QString tmp = QString("Student\n") + m_address.toString() + QString("\n") + m_name + QString("\nDisconnect");
-    command_socket->writeDatagram(tmp.toUtf8().data(), tmp.toUtf8().size(), teacher_address, command_port);
+    commandsend_socket->writeDatagram(tmp.toUtf8().data(), tmp.toUtf8().size(), teacher_address, command_port);
 
     if(flag_startup)
     {
@@ -67,10 +70,22 @@ void MainWindow::closeEvent(QCloseEvent *)
 
 void MainWindow::initUdpConnections()
 {
-    command_socket->close();
-    command_socket->bind(m_address, command_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress); // 绑定地址端口
-    command_socket->joinMulticastGroup(groupAddress, m_interface);                                          // 添加到组播，绑定组播网卡
-    command_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);                                    // 尝试优化套接字以降低延迟
+    commandsend_socket->close();
+    commandsend_socket->bind(m_address, command_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
+    commandsend_socket->joinMulticastGroup(groupAddress, m_interface);
+    commandsend_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+    commandsend_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);
+#ifdef LOCAL_TEST
+    commandsend_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
+#else
+    commandsend_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);
+#endif
+    commandsend_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024 * 4);
+
+    commandrecv_socket->close();
+    commandrecv_socket->bind(QHostAddress::AnyIPv4, command_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
+    commandrecv_socket->joinMulticastGroup(groupAddress, m_interface);
+    commandrecv_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024 * 4);
 }
 
 void MainWindow::initOutputDevice()
@@ -297,8 +312,8 @@ void MainWindow::on_connectReady(QNetworkInterface interface, QHostAddress addre
     m_name = name;
 
     initUdpConnections();
-    connect(command_socket, SIGNAL(readyRead()), this, SLOT(on_commandReadyRead()));
-    emit command_socket->readyRead();
+    connect(commandrecv_socket, SIGNAL(readyRead()), this, SLOT(on_commandReadyRead()));
+    emit commandrecv_socket->readyRead();
 }
 
 void MainWindow::on_connectNotReady()
@@ -311,7 +326,7 @@ void MainWindow::on_startUp()
     // 发送客户端信息
     qint64 res;
     QString tmp = QString("Student\n") + m_address.toString() + QString("\n") + m_name + QString("\nConnect");
-    res = command_socket->writeDatagram(tmp.toUtf8().data(), tmp.toUtf8().size(), teacher_address, command_port);
+    res = commandsend_socket->writeDatagram(tmp.toUtf8().data(), tmp.toUtf8().size(), teacher_address, command_port);
     if(res < 0)
     {
         qDebug() << "command_socket: Student IP Send Failed!";
@@ -351,7 +366,7 @@ void MainWindow::on_commandTimeOut()
     // 定时发送客户端信息
     qint64 res;
     QString tmp = QString("Student\n") + m_address.toString() + QString("\n") + m_name + QString("\nConnect");
-    res = command_socket->writeDatagram(tmp.toUtf8().data(), tmp.toUtf8().size(), teacher_address, command_port);
+    res = commandsend_socket->writeDatagram(tmp.toUtf8().data(), tmp.toUtf8().size(), teacher_address, command_port);
     if(res < 0)
     {
         qDebug() << "command_socket: Student IP Send Failed!";
@@ -364,10 +379,10 @@ void MainWindow::on_commandReadyRead()
     qint64 res;
     QByteArray byteArray;
 
-    while(command_socket->hasPendingDatagrams())
+    while(commandrecv_socket->hasPendingDatagrams())
     {
-        byteArray.resize(command_socket->pendingDatagramSize());
-        res = command_socket->readDatagram(byteArray.data(), byteArray.size());
+        byteArray.resize(static_cast<qint32>(commandrecv_socket->pendingDatagramSize()));
+        res = commandrecv_socket->readDatagram(byteArray.data(), byteArray.size());
         if(res < 0)
         {
             qDebug() << "command_socket: Read Datagram Failed!";

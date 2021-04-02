@@ -33,12 +33,16 @@ void AudioPackSender::run()
     audio_socket->joinMulticastGroup(groupAddress, interface);
     audio_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     audio_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);
+#ifdef LOCAL_TEST
+    audio_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
+#else
     audio_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);
+#endif
     audio_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024 * 64);  // 缓冲区最大存储 4个 数据包（单个 16K）
 
     qint64 res;
     qint32 dataLength = ap->len;
-    uchar *dataBuffer = (uchar *)ap->data;
+    uchar *dataBuffer = reinterpret_cast<uchar *>(ap->data);
 
     qint32 packetNum = dataLength / PACKET_MAX_SIZE;
     qint32 lastPacketSize = dataLength % PACKET_MAX_SIZE;
@@ -60,9 +64,9 @@ void AudioPackSender::run()
     packageHead.TransPackageSize = packageHead.TransPackageHdrSize + PACKET_MAX_SIZE;
     packageHead.DataPackageCurrIndex = 0;
     packageHead.DataPackageOffset = 0;
-    memcpy(frameBuffer, &packageHead, packageHead.TransPackageHdrSize);
+    memcpy(frameBuffer, &packageHead, static_cast<quint32>(packageHead.TransPackageHdrSize));
     res = audio_socket->writeDatagram(
-                (const char *)frameBuffer, packageHead.TransPackageSize,
+                reinterpret_cast<const char *>(frameBuffer), packageHead.TransPackageSize,
                 groupAddress, audio_port);
     if(res < 0)
     {
@@ -76,11 +80,11 @@ void AudioPackSender::run()
             packageHead.TransPackageSize = packageHead.TransPackageHdrSize + PACKET_MAX_SIZE;
             packageHead.DataPackageCurrIndex = currentPacketIndex + 1;
             packageHead.DataPackageOffset = currentPacketIndex * PACKET_MAX_SIZE;
-            memcpy(frameBuffer, &packageHead, packageHead.TransPackageHdrSize);
+            memcpy(frameBuffer, &packageHead, static_cast<quint32>(packageHead.TransPackageHdrSize));
             memcpy(frameBuffer + packageHead.TransPackageHdrSize, dataBuffer + packageHead.DataPackageOffset, PACKET_MAX_SIZE);
 
             res = audio_socket->writeDatagram(
-                        (const char *)frameBuffer, packageHead.TransPackageSize,
+                        reinterpret_cast<const char *>(frameBuffer), packageHead.TransPackageSize,
                         groupAddress, audio_port);
 
             if(res < 0)
@@ -95,11 +99,11 @@ void AudioPackSender::run()
             packageHead.TransPackageSize = packageHead.TransPackageHdrSize + lastPacketSize;
             packageHead.DataPackageCurrIndex = currentPacketIndex + 1;
             packageHead.DataPackageOffset = currentPacketIndex * PACKET_MAX_SIZE;
-            memcpy(frameBuffer, &packageHead, packageHead.TransPackageHdrSize);
-            memcpy(frameBuffer + packageHead.TransPackageHdrSize, dataBuffer + packageHead.DataPackageOffset, lastPacketSize);
+            memcpy(frameBuffer, &packageHead, static_cast<quint32>(packageHead.TransPackageHdrSize));
+            memcpy(frameBuffer + packageHead.TransPackageHdrSize, dataBuffer + packageHead.DataPackageOffset, static_cast<quint32>(lastPacketSize));
 
             res = audio_socket->writeDatagram(
-                        (const char *)frameBuffer, packageHead.TransPackageSize,
+                        reinterpret_cast<const char *>(frameBuffer), packageHead.TransPackageSize,
                         groupAddress, audio_port);
 
             if(res < 0)

@@ -33,7 +33,7 @@ void FileReceiver::on_newConnection()
         file_socket = file_server->nextPendingConnection();
         // qDebug() << file_socket->peerAddress().toString() << file_socket->peerPort();
         file_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
-        file_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024 * 64);
+        file_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024 * 1024 * 64);
 
         connect(file_socket, SIGNAL(readyRead()), this, SLOT(on_fileReadyRead()), Qt::DirectConnection);
         connect(file_socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)), Qt::DirectConnection);
@@ -47,13 +47,13 @@ void FileReceiver::on_fileReadyRead()
     static qint64 receivedBytes = 0;
 
     QByteArray byteArray;
-    byteArray.resize(file_socket->bytesAvailable());
+    byteArray.resize(static_cast<qint32>(file_socket->bytesAvailable()));
     byteArray = file_socket->readAll();
 
     if(!QString(byteArray).indexOf("File\n"))
     {
         fileName = QString(byteArray).split("\n").at(1);
-        fileSize = QString(byteArray).split("\n").at(2).toInt(0);
+        fileSize = QString(byteArray).split("\n").at(2).toInt();
         // qDebug() << fileName << fileSize;
 
         // 另存为文件

@@ -1,9 +1,11 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#define LOCAL_TEST                                      // 本地测试宏定义
+
 #define PACKET_MAX_SIZE int(1200)                       // 数据包最大长度   * MTU = 1500，故数据包大小 1500 - 20（IP头）- 8（UDP头） = 1472
 
-#define GROUP_ADDR      QHostAddress("238.255.255.255") // 组播地址
+#define GROUP_ADDR      QHostAddress("239.0.0.1")       // 组播地址
 #define COMMAND_PORT    quint16(8887)                   // 命令组播端口
 #define VIDEO_PORT      quint16(8888)                   // 视频组播端口
 #define AUDIO_PORT      quint16(8889)                   // 音频组播端口

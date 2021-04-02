@@ -20,7 +20,11 @@ void VideoFrameReceiver::run()
     video_port = VIDEO_PORT;
 
     video_socket = new QUdpSocket;
-    video_socket->bind(address, video_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
+// #ifdef Q_OS_WINDOWS
+//     video_socket->bind(address, video_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
+// #elif defined Q_OS_LINUX
+    video_socket->bind(QHostAddress::AnyIPv4, video_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
+// #endif
     video_socket->joinMulticastGroup(groupAddress, interface);
     video_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     video_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1920 * 1080 * 16);
@@ -53,7 +57,7 @@ void VideoFrameReceiver::on_videoReadyRead()
         Q_UNUSED(timestamp)
         static VideoPack vp;
 
-        PackageHeader *packageHead = (PackageHeader *)byteArray.data();
+        PackageHeader *packageHead = reinterpret_cast<PackageHeader *>(byteArray.data());
         if(packageHead->DataPackageCurrIndex == 0)
         {
             /*
@@ -102,7 +106,7 @@ void VideoFrameReceiver::on_videoReadyRead()
         }
 
         memcpy(vp.data + packageHead->DataPackageOffset, byteArray.data() + packageHead->TransPackageHdrSize,
-               packageHead->TransPackageSize - packageHead->TransPackageHdrSize);
+               static_cast<quint32>(packageHead->TransPackageSize - packageHead->TransPackageHdrSize));
 
         if((packageHead->DataPackageCurrIndex == packageHead->DataPackageNum) && (size == packageHead->DataSize))
         {

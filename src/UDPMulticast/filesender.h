@@ -12,7 +12,7 @@ class FileSender : public QRunnable
 {
 public:
     FileSender(QHostAddress address, QString fileName);
-    ~FileSender();
+    ~FileSender() override;
 
 protected:
     void run() override;

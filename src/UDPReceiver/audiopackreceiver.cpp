@@ -20,7 +20,11 @@ void AudioPackReceiver::run()
     audio_port = AUDIO_PORT;
 
     audio_socket = new QUdpSocket;
-    audio_socket->bind(address, audio_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
+// #ifdef Q_OS_WINDOWS
+//     audio_socket->bind(address, audio_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
+// #elif defined Q_OS_LINUX
+    audio_socket->bind(QHostAddress::AnyIPv4, audio_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
+// #endif
     audio_socket->joinMulticastGroup(groupAddress, interface);
     audio_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     audio_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024 * 64);
@@ -50,7 +54,7 @@ void AudioPackReceiver::on_audioReadyRead()
         Q_UNUSED(timestamp)
         static AudioPack ap;
 
-        PackageHeader *packageHead = (PackageHeader *)byteArray.data();
+        PackageHeader *packageHead = reinterpret_cast<PackageHeader *>(byteArray.data());
         if(packageHead->DataPackageCurrIndex == 0)
         {
             /*
@@ -95,7 +99,7 @@ void AudioPackReceiver::on_audioReadyRead()
         }
 
         memcpy(ap.data + packageHead->DataPackageOffset, byteArray.data() + packageHead->TransPackageHdrSize,
-               packageHead->TransPackageSize - packageHead->TransPackageHdrSize);
+               static_cast<quint32>(packageHead->TransPackageSize - packageHead->TransPackageHdrSize));
 
         if((packageHead->DataPackageCurrIndex == packageHead->DataPackageNum) && (size == packageHead->DataSize))
         {

@@ -23,7 +23,7 @@ void FileSender::run()
 
     file_socket = new QTcpSocket;
     file_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
-    file_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024 * 64);
+    file_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024 * 1024 * 64);
 
     // 连接客户端
     file_socket->connectToHost(address, file_port);
@@ -45,7 +45,7 @@ void FileSender::run()
     qint64 res;
     QByteArray byteArray;
 
-    qint32 packetNum = fileSize / PACKET_MAX_SIZE;
+    qint32 packetNum = static_cast<qint32>(fileSize / PACKET_MAX_SIZE);
     qint32 lastPacketSize = fileSize % PACKET_MAX_SIZE;
     qint32 currentPacketIndex = 0;
     if(lastPacketSize != 0)

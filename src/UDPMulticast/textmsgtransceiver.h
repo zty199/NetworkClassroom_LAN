@@ -19,7 +19,8 @@ protected:
     void run() override;
 
 private:
-    QUdpSocket *text_socket;
+    QUdpSocket *textsend_socket;
+    QUdpSocket *textrecv_socket;
     QHostAddress groupAddress;
     quint16 text_port;
     QNetworkInterface interface;

@@ -14,7 +14,7 @@ class StartUpDialog : public QDialog
 
 public:
     explicit StartUpDialog(QWidget *parent = nullptr);
-    ~StartUpDialog();
+    ~StartUpDialog() override;
 
 protected:
     void mousePressEvent(QMouseEvent *) override;

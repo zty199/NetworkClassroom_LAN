@@ -24,7 +24,7 @@ private:
     QTcpServer *file_server;
     QTcpSocket *file_socket;
     QHostAddress m_address;
-    qint16 file_port;
+    quint16 file_port;
 
     QString fileName;
     qint64 fileSize;

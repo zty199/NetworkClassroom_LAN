@@ -38,7 +38,8 @@ private:
     QAudioFormat format;
     bool flag_audio;
 
-    QUdpSocket *command_socket;
+    QUdpSocket *commandsend_socket;
+    QUdpSocket *commandrecv_socket;
     QHostAddress groupAddress;
     quint16 command_port;
 

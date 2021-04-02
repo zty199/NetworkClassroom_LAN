@@ -98,12 +98,19 @@ void MainWindow::closeEvent(QCloseEvent *)
 
 void MainWindow::initUdpConnections()
 {
+    // 此处客户端返回为单播信息，不需要分为两个 socket
     command_socket->close();
-    command_socket->bind(m_address, command_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress); // 绑定地址端口
-    command_socket->joinMulticastGroup(groupAddress, m_interface);                                          // 添加到组播，绑定组播网卡
-    command_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);                                    // 尝试优化套接字以降低延迟
-    command_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);                                // 设置套接字属性
-    // command_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);                           // 本机禁止接收（本地测试中禁用）
+    command_socket->bind(m_address, command_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);             // 绑定地址端口
+    command_socket->joinMulticastGroup(groupAddress, m_interface);                                                      // 添加到组播，绑定组播网卡
+    command_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);                                                // 尝试优化套接字以降低延迟
+    command_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);                                            // 设置套接字属性
+#ifdef LOCAL_TEST
+    command_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);                                       // 本机允许接收组播回环信息
+#else
+    command_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);                                       // 本机禁止接收（本地测试中需置为 1）
+#endif
+    command_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024 * 4);                             // 设置发送缓冲区
+    command_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024 * 4);                          // 设置接收缓冲区
 }
 
 void MainWindow::initCamDevice()
@@ -295,14 +302,14 @@ void MainWindow::on_screenTimeOut()
 
     image = image.scaled(image.size().boundedTo(screenRes), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
-    if(image.size().height() < 1080)
+    if(image.size().height() < 720)
     {
         video_threadPool->setMaxThreadCount(1);
     }
     else
     {
         /*
-         * 对 CPU 单核性能较弱的机型来说，建议使用多线程处理 1080p 图像
+         * 对 CPU 单核性能较弱的机型来说，建议使用多线程处理 720p 图像
          * 由于接收端为单线程接收，不建议使用过多线程
          */
         video_threadPool->setMaxThreadCount(2);
@@ -465,7 +472,7 @@ void MainWindow::on_videoFrameChanged(QVideoFrame frame)
 #endif
     image = image.scaled(image.size().boundedTo(QSize(1920, 1080)), Qt::KeepAspectRatio, Qt::SmoothTransformation); // 分辨率高于 1080p 则压缩
 
-    if(image.size().height() < 1080)
+    if(image.size().height() < 720)
     {
         video_threadPool->setMaxThreadCount(1);
     }
@@ -735,7 +742,7 @@ void MainWindow::on_commandTimeOut()
     res = command_socket->writeDatagram(tmp.toUtf8().data(), tmp.toUtf8().size(), groupAddress, command_port);
     if(res < 0)
     {
-        qDebug() << "command_socket: Teacher IP Send Failed!";
+        qDebug() << "commandsend_socket: Teacher IP Send Failed!";
     }
 }
 
@@ -747,11 +754,11 @@ void MainWindow::on_commandReadyRead()
 
     while(command_socket->hasPendingDatagrams())
     {
-        byteArray.resize(command_socket->pendingDatagramSize());
+        byteArray.resize(static_cast<qint32>(command_socket->pendingDatagramSize()));
         res = command_socket->readDatagram(byteArray.data(), byteArray.size());
         if(res < 0)
         {
-            qDebug() << "command_socket: Read Datagram Failed!";
+            qDebug() << "commandsend_socket: Read Datagram Failed!";
         }
 
         // 接收到学生信息
