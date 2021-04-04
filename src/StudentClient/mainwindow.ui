@@ -29,7 +29,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>UDPReceiver</string>
+   <string>StudentClient</string>
   </property>
   <property name="layoutDirection">
    <enum>Qt::LeftToRight</enum>

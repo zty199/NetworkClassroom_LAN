@@ -1,11 +1,13 @@
 #include "startupdialog.h"
 #include "ui_startupdialog.h"
 
+#include <QNetworkAddressEntry>
+
 StartUpDialog::StartUpDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::StartUpDialog),
     availableInterfaces(QNetworkInterface::allInterfaces()),
-    flag_connect(false)
+    flag_multicast(false)
 {
     ui->setupUi(this);
 
@@ -41,7 +43,7 @@ void StartUpDialog::initUI()
 
 void StartUpDialog::initConnections()
 {
-    connect(this->parent(), SIGNAL(teacherConnected()), this, SLOT(on_teacherConnected()));
+    connect(this->parent(), SIGNAL(studentConnected(int)), this, SLOT(on_studentConnected(int)));
 }
 
 void StartUpDialog::on_cb_network_currentIndexChanged(int index)
@@ -50,12 +52,13 @@ void StartUpDialog::on_cb_network_currentIndexChanged(int index)
     m_interface = availableInterfaces.at(ui->cb_network->currentData().value<int>());
 }
 
-void StartUpDialog::on_btn_connect_clicked()
+void StartUpDialog::on_btn_multicast_clicked()
 {
-    if(!flag_connect)
+    if(!flag_multicast)
     {
         ui->cb_network->setDisabled(true);
         ui->lineEdit->setDisabled(true);
+        ui->btn_start->setEnabled(true);
 
         // 获取当前网卡 IP
         QList<QNetworkAddressEntry> list = m_interface.addressEntries();
@@ -70,6 +73,13 @@ void StartUpDialog::on_btn_connect_clicked()
                 m_address = entry.ip();
             }
         }
+        if(m_address.isNull())
+        {
+            // IP 为空则终止
+            flag_multicast = true;
+            emit ui->btn_multicast->clicked();
+            return;
+        }
 
         if(ui->lineEdit->text().isEmpty())
         {
@@ -78,9 +88,9 @@ void StartUpDialog::on_btn_connect_clicked()
         m_name = ui->lineEdit->text();
         ui->lb_welcome->setText("Welcome, " + m_name + "!");
 
-        flag_connect = true;
+        flag_multicast = true;
 
-        emit connectReady(m_interface, m_address, m_name);
+        emit multicastReady(m_interface, m_address, m_name);
     }
     else
     {
@@ -88,10 +98,10 @@ void StartUpDialog::on_btn_connect_clicked()
         ui->lineEdit->setEnabled(true);
         ui->lineEdit->clear();
         ui->lb_welcome->setText("Welcome!");
-        ui->lb_connect->setText("Waiting for teacher...");
+        ui->lb_connect->setText("Waiting for students...");
         ui->btn_start->setDisabled(true);
 
-        flag_connect = false;
+        flag_multicast = false;
 
         int index = -1;
         QNetworkInterface curInterface;
@@ -126,7 +136,7 @@ void StartUpDialog::on_btn_connect_clicked()
             ui->cb_network->setCurrentIndex(index);
         }
 
-        emit connectNotReady();
+        emit multicastNotReady();
     }
 }
 
@@ -136,8 +146,14 @@ void StartUpDialog::on_btn_start_clicked()
     emit startUp();
 }
 
-void StartUpDialog::on_teacherConnected()
+void StartUpDialog::on_studentConnected(int num)
 {
-    ui->lb_connect->setText("Teacher Connected!");
-    ui->btn_start->setEnabled(true);
+    if(num > 0)
+    {
+        ui->lb_connect->setText(QString("%1 student(s) connected...").arg(num));
+    }
+    else
+    {
+        ui->lb_connect->setText("Waiting for students...");
+    }
 }

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>1024</width>
+    <height>768</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,21 +18,21 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>800</width>
-    <height>600</height>
+    <width>1024</width>
+    <height>768</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>800</width>
-    <height>600</height>
+    <width>1024</width>
+    <height>768</height>
    </size>
   </property>
   <property name="focusPolicy">
    <enum>Qt::NoFocus</enum>
   </property>
   <property name="windowTitle">
-   <string>UDPMulticast</string>
+   <string>TeacherServer</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QLabel" name="videoViewer">
@@ -40,8 +40,8 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>800</width>
-      <height>450</height>
+      <width>1024</width>
+      <height>576</height>
      </rect>
     </property>
     <property name="focusPolicy">
@@ -66,9 +66,9 @@
    <widget class="QPushButton" name="btn_camera">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>510</y>
-      <width>80</width>
+      <x>40</x>
+      <y>660</y>
+      <width>90</width>
       <height>30</height>
      </rect>
     </property>
@@ -79,9 +79,9 @@
    <widget class="QPushButton" name="btn_screen">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>470</y>
-      <width>80</width>
+      <x>40</x>
+      <y>610</y>
+      <width>90</width>
       <height>30</height>
      </rect>
     </property>
@@ -92,9 +92,9 @@
    <widget class="QComboBox" name="cb_camera">
     <property name="geometry">
      <rect>
-      <x>120</x>
-      <y>510</y>
-      <width>320</width>
+      <x>170</x>
+      <y>660</y>
+      <width>390</width>
       <height>30</height>
      </rect>
     </property>
@@ -102,9 +102,9 @@
    <widget class="QPushButton" name="btn_audio">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>550</y>
-      <width>80</width>
+      <x>40</x>
+      <y>710</y>
+      <width>90</width>
       <height>30</height>
      </rect>
     </property>
@@ -115,9 +115,9 @@
    <widget class="QComboBox" name="cb_device">
     <property name="geometry">
      <rect>
-      <x>120</x>
-      <y>550</y>
-      <width>320</width>
+      <x>170</x>
+      <y>710</y>
+      <width>390</width>
       <height>30</height>
      </rect>
     </property>
@@ -125,9 +125,9 @@
    <widget class="QComboBox" name="cb_camRes">
     <property name="geometry">
      <rect>
-      <x>460</x>
-      <y>510</y>
-      <width>320</width>
+      <x>600</x>
+      <y>660</y>
+      <width>390</width>
       <height>30</height>
      </rect>
     </property>
@@ -135,9 +135,9 @@
    <widget class="QSlider" name="slider_volume">
     <property name="geometry">
      <rect>
-      <x>460</x>
-      <y>550</y>
-      <width>200</width>
+      <x>600</x>
+      <y>710</y>
+      <width>270</width>
       <height>30</height>
      </rect>
     </property>
@@ -160,9 +160,9 @@
    <widget class="QLabel" name="volume">
     <property name="geometry">
      <rect>
-      <x>660</x>
-      <y>550</y>
-      <width>120</width>
+      <x>900</x>
+      <y>710</y>
+      <width>90</width>
       <height>30</height>
      </rect>
     </property>
@@ -176,9 +176,9 @@
    <widget class="QPushButton" name="btn_screenPen">
     <property name="geometry">
      <rect>
-      <x>460</x>
-      <y>470</y>
-      <width>80</width>
+      <x>600</x>
+      <y>610</y>
+      <width>90</width>
       <height>30</height>
      </rect>
     </property>
@@ -189,9 +189,9 @@
    <widget class="QComboBox" name="cb_screenRes">
     <property name="geometry">
      <rect>
-      <x>120</x>
-      <y>470</y>
-      <width>150</width>
+      <x>170</x>
+      <y>610</y>
+      <width>200</width>
       <height>30</height>
      </rect>
     </property>
@@ -199,9 +199,9 @@
    <widget class="QPushButton" name="btn_fileTrans">
     <property name="geometry">
      <rect>
-      <x>540</x>
-      <y>470</y>
-      <width>80</width>
+      <x>700</x>
+      <y>610</y>
+      <width>90</width>
       <height>30</height>
      </rect>
     </property>
@@ -212,9 +212,9 @@
    <widget class="QPushButton" name="btn_signIn">
     <property name="geometry">
      <rect>
-      <x>620</x>
-      <y>470</y>
-      <width>80</width>
+      <x>800</x>
+      <y>610</y>
+      <width>90</width>
       <height>30</height>
      </rect>
     </property>
@@ -225,8 +225,8 @@
    <widget class="QComboBox" name="cb_screenHz">
     <property name="geometry">
      <rect>
-      <x>290</x>
-      <y>470</y>
+      <x>410</x>
+      <y>610</y>
       <width>150</width>
       <height>30</height>
      </rect>
@@ -235,9 +235,9 @@
    <widget class="QPushButton" name="btn_textChat">
     <property name="geometry">
      <rect>
-      <x>700</x>
-      <y>470</y>
-      <width>80</width>
+      <x>900</x>
+      <y>610</y>
+      <width>90</width>
       <height>30</height>
      </rect>
     </property>

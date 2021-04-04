@@ -104,7 +104,7 @@ void MainWindow::initUdpConnections()
     command_socket->joinMulticastGroup(groupAddress, m_interface);                                                      // 添加到组播，绑定组播网卡
     command_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);                                                // 尝试优化套接字以降低延迟
     command_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);                                            // 设置套接字属性
-#ifdef LOCAL_TEST
+#ifdef QT_DEBUG
     command_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);                                       // 本机允许接收组播回环信息
 #else
     command_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);                                       // 本机禁止接收（本地测试中需置为 1）
@@ -222,7 +222,11 @@ void MainWindow::on_btn_screen_clicked()
         m_cursor->show();                       // 显示指针标记
 
         qDebug() << "Screen Share Started!";
+
+        ui->btn_screen->setIcon(QIcon::fromTheme(":/icons/icons/screen-share-start.svg"));
+
         flag_screen = true;
+
         flag_camera = true;
         emit ui->btn_camera->clicked();
     }
@@ -231,6 +235,8 @@ void MainWindow::on_btn_screen_clicked()
         m_cursor->hide();
         screen_timer->stop();
         qDebug() << "Screen Share Stopped!";
+
+        ui->btn_screen->setIcon(QIcon::fromTheme(":/icons/icons/screen-share-stop.svg"));
 
         // 终止视频传输时发送信号
         video_threadPool->clear();
@@ -326,6 +332,8 @@ void MainWindow::on_btn_camera_clicked()
         connect(m_viewFinder, SIGNAL(videoFrameChanged(QVideoFrame)), this, SLOT(on_videoFrameChanged(QVideoFrame)));
         qDebug() << "Camera Started!";
 
+        ui->btn_camera->setIcon(QIcon::fromTheme(":/icons/icons/camera-start.svg"));
+
         // 摄像头设备启动后才能获取支持的图像格式列表
         initCamera();
 
@@ -341,6 +349,8 @@ void MainWindow::on_btn_camera_clicked()
         m_viewFinder->disconnect();
         m_camera->stop();
         qDebug() << "Camera Stopped!";
+
+        ui->btn_camera->setIcon(QIcon::fromTheme(":/icons/icons/camera-stop.svg"));
 
         video_threadPool->clear();
         video_threadPool->waitForDone();
@@ -496,6 +506,9 @@ void MainWindow::on_btn_audio_clicked()
         m_audioDevice = m_audioInput->start();
         connect(m_audioDevice, SIGNAL(readyRead()), this, SLOT(on_deviceReadyRead()));
         qDebug() << "Audio Share Started!";
+
+        ui->btn_audio->setIcon(QIcon::fromTheme(":/icons/icons/audio-input-start.svg"));
+
         flag_audio = true;
     }
     else
@@ -504,6 +517,9 @@ void MainWindow::on_btn_audio_clicked()
         m_audioDevice->disconnect();
         m_audioInput->stop();
         qDebug() << "Audio Share Stopped!";
+
+        ui->btn_audio->setIcon(QIcon::fromTheme(":/icons/icons/audio-input-stop.svg"));
+
         flag_audio = false;
 
         // 刷新音频输入可用设备列表
@@ -731,6 +747,14 @@ void MainWindow::on_startUp()
     text_transceiver->start();
 
     this->show();
+
+    ui->btn_screen->setStyleSheet("text-align: left;");
+    ui->btn_camera->setStyleSheet("text-align: left;");
+    ui->btn_audio->setStyleSheet("text-align: left;");
+    ui->btn_screen->setIcon(QIcon::fromTheme(":/icons/icons/screen-share-stop.svg"));
+    ui->btn_camera->setIcon(QIcon::fromTheme(":/icons/icons/camera-stop.svg"));
+    ui->btn_audio->setIcon(QIcon::fromTheme(":/icons/icons/audio-input-stop.svg"));
+
     flag_startup = true;
 }
 

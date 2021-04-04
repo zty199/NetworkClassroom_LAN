@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>icons/audio-input-start.svg</file>
+        <file>icons/audio-input-stop.svg</file>
+        <file>icons/camera-start.svg</file>
+        <file>icons/camera-stop.svg</file>
+        <file>icons/screen-share-start.svg</file>
+        <file>icons/screen-share-stop.svg</file>
+    </qresource>
+</RCC>

@@ -1,60 +1,48 @@
-#include "videoframesender.h"
+#include "audiopacksender.h"
 
-#include <QBuffer>
 #include <QDateTime>
 
-VideoFrameSender::VideoFrameSender(QNetworkInterface interface,
-                                   QHostAddress address,
-                                   QImage image,
-                                   QObject *parent) :
-    parent(parent),
+AudioPackSender::AudioPackSender(QNetworkInterface interface,
+                                 QHostAddress address,
+                                 AudioPack ap) :
     interface(interface),
     address(address)
 {
-    this->image = new QImage(image);
+    this->ap = new AudioPack;
+    memcpy(this->ap->data, ap.data, sizeof(ap.data));
+    this->ap->len = ap.len;
     setAutoDelete(true);
 }
 
-VideoFrameSender::~VideoFrameSender()
+AudioPackSender::~AudioPackSender()
 {
-    video_socket->waitForBytesWritten();
-    video_socket->flush();
-    video_socket->close();
-    delete video_socket;
-    delete image;
+    audio_socket->waitForBytesWritten();
+    audio_socket->flush();
+    audio_socket->close();
+    delete audio_socket;
+    delete ap;
 }
 
-void VideoFrameSender::run()
+void AudioPackSender::run()
 {
-    // 回传图像至主线程（避免 GUI 卡顿）
-    QMetaObject::invokeMethod(parent, "on_videoFrameSent", Q_ARG(QImage, *image));
-
     groupAddress = GROUP_ADDR;
-    video_port = VIDEO_PORT;
+    audio_port = AUDIO_PORT;
 
-    // 初始化 video_socket
-    video_socket = new QUdpSocket;
-    video_socket->bind(address, video_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
-    video_socket->joinMulticastGroup(groupAddress, interface);
-    video_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
-    video_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);
-#ifdef LOCAL_TEST
-    video_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
+    audio_socket = new QUdpSocket;
+    audio_socket->bind(address, audio_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
+    audio_socket->joinMulticastGroup(groupAddress, interface);
+    audio_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+    audio_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);
+#ifdef QT_DEBUG
+    audio_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
 #else
-    video_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);
+    audio_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);
 #endif
-    video_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1920 * 1080 * 16);   // 缓冲区最大存储 4 张 1080p 位图
-
-    // 暂存帧图像
-    QByteArray byteArray;
-    QBuffer buffer(&byteArray);
-    buffer.open(QIODevice::ReadWrite);
-    image->save(&buffer, "JPEG");
-    buffer.close();
+    audio_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024 * 64);  // 缓冲区最大存储 4个 数据包（单个 16K）
 
     qint64 res;
-    qint32 dataLength = byteArray.size();
-    uchar *dataBuffer = reinterpret_cast<uchar *>(byteArray.data());
+    qint32 dataLength = ap->len;
+    uchar *dataBuffer = reinterpret_cast<uchar *>(ap->data);
 
     qint32 packetNum = dataLength / PACKET_MAX_SIZE;
     qint32 lastPacketSize = dataLength % PACKET_MAX_SIZE;
@@ -73,17 +61,16 @@ void VideoFrameSender::run()
     uchar frameBuffer[sizeof(packageHead) + PACKET_MAX_SIZE];
     memset(frameBuffer, 0, sizeof(packageHead) + PACKET_MAX_SIZE);
 
-    // 发送空数据包（仅包含帧数据包大小）
     packageHead.TransPackageSize = packageHead.TransPackageHdrSize + PACKET_MAX_SIZE;
     packageHead.DataPackageCurrIndex = 0;
     packageHead.DataPackageOffset = 0;
     memcpy(frameBuffer, &packageHead, static_cast<quint32>(packageHead.TransPackageHdrSize));
-    res = video_socket->writeDatagram(
+    res = audio_socket->writeDatagram(
                 reinterpret_cast<const char *>(frameBuffer), packageHead.TransPackageSize,
-                groupAddress, video_port);
+                groupAddress, audio_port);
     if(res < 0)
     {
-        qDebug() << "video_socket: Video Frame Size Send Failed!";
+        qDebug() << "audio_socket: Audio Pack Size Send Failed!";
     }
 
     while(currentPacketIndex < packetNum)
@@ -96,13 +83,13 @@ void VideoFrameSender::run()
             memcpy(frameBuffer, &packageHead, static_cast<quint32>(packageHead.TransPackageHdrSize));
             memcpy(frameBuffer + packageHead.TransPackageHdrSize, dataBuffer + packageHead.DataPackageOffset, PACKET_MAX_SIZE);
 
-            res = video_socket->writeDatagram(
+            res = audio_socket->writeDatagram(
                         reinterpret_cast<const char *>(frameBuffer), packageHead.TransPackageSize,
-                        groupAddress, video_port);
+                        groupAddress, audio_port);
 
             if(res < 0)
             {
-                qDebug() << "video_socket: Packet Send Failed!";
+                qDebug() << "audio_socket: Packet Send Failed!";
             }
 
             currentPacketIndex++;
@@ -115,13 +102,13 @@ void VideoFrameSender::run()
             memcpy(frameBuffer, &packageHead, static_cast<quint32>(packageHead.TransPackageHdrSize));
             memcpy(frameBuffer + packageHead.TransPackageHdrSize, dataBuffer + packageHead.DataPackageOffset, static_cast<quint32>(lastPacketSize));
 
-            res = video_socket->writeDatagram(
+            res = audio_socket->writeDatagram(
                         reinterpret_cast<const char *>(frameBuffer), packageHead.TransPackageSize,
-                        groupAddress, video_port);
+                        groupAddress, audio_port);
 
             if(res < 0)
             {
-                qDebug() << "video_socket: Packet Send Failed!";
+                qDebug() << "audio_socket: Packet Send Failed!";
             }
 
             currentPacketIndex++;

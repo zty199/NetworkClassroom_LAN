@@ -25,14 +25,6 @@ void TextMsgTransceiver::run()
     groupAddress = GROUP_ADDR;
     text_port = TEXT_PORT;
 
-    /*
-     * QUdpSocket 绑定 IP 和 端口号时，
-     * Linux 系统中需绑定任意 IPv4 才能收到组播，
-     * 若绑定本机 IP 则只能收到单播数据包，
-     * 广播、组播、本地回环数据包均无法收到;
-     * 而 Windows 则没有这个限制，会自动转发。
-     * 故此处收发需分为两个 socket
-     */
     textsend_socket = new QUdpSocket;
     textrecv_socket = new QUdpSocket;
 
@@ -40,17 +32,17 @@ void TextMsgTransceiver::run()
     textsend_socket->joinMulticastGroup(groupAddress, interface);
     textsend_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     textsend_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);
-#ifdef LOCAL_TEST
+#ifdef QT_DEBUG
     textsend_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
 #else
     textsend_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);
 #endif
-    textsend_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024 * 4);        // 发送缓冲区 4K
+    textsend_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024 * 4);
 
     textrecv_socket->bind(QHostAddress::AnyIPv4, text_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
     textrecv_socket->joinMulticastGroup(groupAddress, interface);
     textrecv_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
-    textrecv_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024 * 4);     // 接收缓冲区 4K
+    textrecv_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024 * 4);
 
     connect(textrecv_socket, SIGNAL(readyRead()), this, SLOT(on_textReadyRead()), Qt::DirectConnection);
 
@@ -103,5 +95,5 @@ void TextMsgTransceiver::on_textSend(QString body)
         qDebug() << "text_socket: Text Msg Send Failed!";
         return;
     }
-    emit textAppend(msg);   // 此处需禁止本机回环接收组播信息，否则重复显示
+    emit textAppend(msg);
 }

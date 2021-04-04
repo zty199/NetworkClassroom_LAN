@@ -75,7 +75,7 @@ void MainWindow::initUdpConnections()
     commandsend_socket->joinMulticastGroup(groupAddress, m_interface);
     commandsend_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     commandsend_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);
-#ifdef LOCAL_TEST
+#ifdef QT_DEBUG
     commandsend_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
 #else
     commandsend_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);
@@ -147,6 +147,7 @@ void MainWindow::on_btn_audio_clicked()
     if(!flag_audio)
     {
         ui->slider_volume->setValue(curVolume);
+        ui->btn_audio->setIcon(QIcon::fromTheme(":/icons/icons/audio-output-start.svg"));
         flag_audio = true;
     }
     else
@@ -161,6 +162,7 @@ void MainWindow::on_btn_audio_clicked()
         }
 
         ui->slider_volume->setValue(0);
+        ui->btn_audio->setIcon(QIcon::fromTheme(":/icons/icons/audio-output-stop.svg"));
         flag_audio = false;
 
         // 刷新音频输出可用设备列表
@@ -357,6 +359,8 @@ void MainWindow::on_startUp()
     text_transceiver->start();
 
     flag_startup = true;
+
+    ui->btn_audio->setIcon(QIcon::fromTheme(":/icons/icons/audio-output-start.svg"));
 
     this->show();
 }
