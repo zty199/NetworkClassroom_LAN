@@ -27,6 +27,13 @@ void VideoFrameReceiver::run()
 // #endif
     video_socket->joinMulticastGroup(groupAddress, interface);
     video_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+#ifdef Q_OS_WINDOWS
+#ifdef QT_DEBUG
+    video_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
+#else
+    video_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);
+#endif
+#endif
     video_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1920 * 1080 * 16);
 
     /*

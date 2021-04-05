@@ -33,10 +33,12 @@ void AudioPackSender::run()
     audio_socket->joinMulticastGroup(groupAddress, interface);
     audio_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     audio_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);
+#ifdef Q_OS_LINUX
 #ifdef QT_DEBUG
     audio_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
 #else
     audio_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);
+#endif
 #endif
     audio_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024 * 64);  // 缓冲区最大存储 4个 数据包（单个 16K）
 

@@ -27,6 +27,13 @@ void AudioPackReceiver::run()
 // #endif
     audio_socket->joinMulticastGroup(groupAddress, interface);
     audio_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+#ifdef Q_OS_WINDOWS
+#ifdef QT_DEBUG
+    audio_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
+#else
+    audio_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);
+#endif
+#endif
     audio_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024 * 64);
 
     connect(audio_socket, SIGNAL(readyRead()), this, SLOT(on_audioReadyRead()), Qt::DirectConnection);

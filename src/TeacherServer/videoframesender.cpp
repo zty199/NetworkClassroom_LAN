@@ -38,10 +38,12 @@ void VideoFrameSender::run()
     video_socket->joinMulticastGroup(groupAddress, interface);
     video_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     video_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);
+#ifdef Q_OS_LINUX
 #ifdef QT_DEBUG
     video_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
 #else
     video_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);
+#endif
 #endif
     video_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1920 * 1080 * 16);   // 缓冲区最大存储 4 张 1080p 位图
 

@@ -32,16 +32,25 @@ void TextMsgTransceiver::run()
     textsend_socket->joinMulticastGroup(groupAddress, interface);
     textsend_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     textsend_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);
+#ifdef Q_OS_WINDOWS
 #ifdef QT_DEBUG
     textsend_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
 #else
     textsend_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);
+#endif
 #endif
     textsend_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024 * 4);
 
     textrecv_socket->bind(QHostAddress::AnyIPv4, text_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
     textrecv_socket->joinMulticastGroup(groupAddress, interface);
     textrecv_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+#ifdef Q_OS_WINDOWS
+#ifdef QT_DEBUG
+    textrecv_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
+#else
+    textrecv_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);
+#endif
+#endif
     textrecv_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024 * 4);
 
     connect(textrecv_socket, SIGNAL(readyRead()), this, SLOT(on_textReadyRead()), Qt::DirectConnection);
@@ -55,10 +64,6 @@ void TextMsgTransceiver::run()
     if(res < 0)
     {
         qDebug() << "text_socket: Connect Msg Send Failed!";
-    }
-    else
-    {
-        emit textAppend(msg);
     }
 
     exec();
@@ -95,5 +100,4 @@ void TextMsgTransceiver::on_textSend(QString body)
         qDebug() << "text_socket: Text Msg Send Failed!";
         return;
     }
-    emit textAppend(msg);
 }

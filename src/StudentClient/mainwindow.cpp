@@ -75,16 +75,20 @@ void MainWindow::initUdpConnections()
     commandsend_socket->joinMulticastGroup(groupAddress, m_interface);
     commandsend_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     commandsend_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);
-#ifdef QT_DEBUG
-    commandsend_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
-#else
-    commandsend_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);
-#endif
+    // 这里是直连服务端 IP 的单播 socket，故不用设置 MulticastLoopback
     commandsend_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024 * 4);
 
     commandrecv_socket->close();
     commandrecv_socket->bind(QHostAddress::AnyIPv4, command_port, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
     commandrecv_socket->joinMulticastGroup(groupAddress, m_interface);
+    commandrecv_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+#ifdef Q_OS_WINDOWS
+#ifdef QT_DEBUG
+    commandrecv_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
+#else
+    commandrecv_socket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);
+#endif
+#endif
     commandrecv_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024 * 4);
 }
 
