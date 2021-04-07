@@ -1,8 +1,6 @@
 #include "filesender.h"
 
 #include <QFileInfo>
-#include <QElapsedTimer>
-#include <QCoreApplication>
 
 FileSender::FileSender(QHostAddress address, QString fileName) :
     address(address),
@@ -23,7 +21,7 @@ void FileSender::run()
 
     file_socket = new QTcpSocket;
     file_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
-    file_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024 * 1024 * 64);
+    // file_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024 * 8);
 
     // 连接客户端
     file_socket->connectToHost(address, file_port);
@@ -57,14 +55,6 @@ void FileSender::run()
     if(res < 0)
     {
         qDebug() << "file_socket: File Info Send Failed!";
-    }
-
-    // 延时发送文件，防止 TCP 粘包（非阻塞）
-    QElapsedTimer timer;
-    timer.start();
-    while(timer.elapsed() < 500)
-    {
-        QCoreApplication::processEvents();
     }
 
     while(currentPacketIndex < packetNum)

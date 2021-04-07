@@ -65,6 +65,7 @@ void TextMsgTransceiver::run()
     {
         qDebug() << "text_socket: Connect Msg Send Failed!";
     }
+    emit textAppend(msg);
 
     exec();
 }
@@ -100,4 +101,5 @@ void TextMsgTransceiver::on_textSend(QString body)
         qDebug() << "text_socket: Text Msg Send Failed!";
         return;
     }
+    emit textAppend(msg);
 }

@@ -33,7 +33,7 @@ void FileReceiver::on_newConnection()
         file_socket = file_server->nextPendingConnection();
         // qDebug() << file_socket->peerAddress().toString() << file_socket->peerPort();
         file_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
-        file_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024 * 1024 * 64);
+        file_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024 * 8);     // 缓冲区超过 8K 会引起 程序异常结束 或 readyRead() 只触发一次
 
         connect(file_socket, SIGNAL(readyRead()), this, SLOT(on_fileReadyRead()), Qt::DirectConnection);
         connect(file_socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)), Qt::DirectConnection);
@@ -48,7 +48,7 @@ void FileReceiver::on_fileReadyRead()
 
     QByteArray byteArray;
     byteArray.resize(static_cast<qint32>(file_socket->bytesAvailable()));
-    byteArray = file_socket->readAll();
+    file_socket->read(byteArray.data(), byteArray.size());      // 使用 file_socket->realAll() 会引起 程序异常结束
 
     if(!QString(byteArray).indexOf("File\n"))
     {
@@ -62,7 +62,8 @@ void FileReceiver::on_fileReadyRead()
                                                    "Save As",
                                                    QDir::homePath() + "/Desktop/" + fileName,
                                                    "*." + suffix);
-        if(tmp.isEmpty())
+        // 若文件路径为空 或 所选路径无法写入
+        if(tmp.isEmpty() || !QFileInfo(QFileInfo(tmp).absolutePath()).permissions().testFlag(QFile::WriteUser))
         {
             tmp = QDir::homePath() + "/Desktop/" + fileName;
         }
@@ -73,12 +74,43 @@ void FileReceiver::on_fileReadyRead()
             QMessageBox::critical(nullptr, "Critical", "File Save Failed!", QMessageBox::Ok);
             return;
         }
+
+        // 处理粘包部分
+        if(byteArray.size() > PACKET_MAX_SIZE)
+        {
+            res = file->write(byteArray.data() + PACKET_MAX_SIZE, byteArray.size() - PACKET_MAX_SIZE);
+            if(res < 0)
+            {
+                qDebug() << "file_receiver: File Write Failed!";
+                file->close();
+                return;
+            }
+            else
+            {
+                receivedBytes += res;
+            }
+
+            if(receivedBytes == fileSize)
+            {
+                file->close();
+                // qDebug() << QFileInfo(*file).size();
+                // QDesktopServices::openUrl(QFileInfo(*file).absolutePath());
+                delete file;
+
+                file_socket->disconnectFromHost();
+                file_socket->close();
+                delete file_socket;
+
+                receivedBytes = 0;
+            }
+        }
         return;
     }
 
     if((res = file->write(byteArray.data(), byteArray.size())) < 0)
     {
-        qDebug() << "file_receive: File Write Failed!";
+        qDebug() << "file_receiver: File Write Failed!";
+        file->close();
         return;
     }
     else
