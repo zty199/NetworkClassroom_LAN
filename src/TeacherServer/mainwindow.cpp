@@ -29,6 +29,7 @@ MainWindow::MainWindow(QWidget *parent) :
     command_timer(new QTimer(this)),
     stuNum(0),
     flag_startup(false),
+    m_progress(new FileSendProgress(this)),
     m_textchat(new TextChatDialog(this)),
     flag_text(false)
 {
@@ -639,6 +640,9 @@ void MainWindow::on_btn_fileTrans_clicked()
     }
     file.close();
 
+    // 显示文件传输总进度
+    m_progress->show();
+
     // 获取当前连接客户端列表
     QList<QHostAddress> stuList;
     QMap<QString, QString>::iterator it;
@@ -647,11 +651,18 @@ void MainWindow::on_btn_fileTrans_clicked()
         stuList.append(QHostAddress(it.key()));
     }
 
+    qint32 listSize = stuList.size(), count = 0;
     file_threadPool->setMaxThreadCount(2);
     foreach(const QHostAddress &address, stuList)
     {
         file_threadPool->start(new FileSender(address, fileName));
+
+        count++;
+        m_progress->setValue(static_cast<int>(qreal(count) / listSize));
     }
+
+    // 传输完成后隐藏进度条
+    m_progress->hide();
 }
 
 void MainWindow::on_btn_signIn_clicked()

@@ -30,6 +30,7 @@ CONFIG(release, debug|release): DEFINES += QT_NO_WARNING_OUTPUT QT_NO_DEBUG_OUTP
 SOURCES += \
         audiopackreceiver.cpp \
         filereceiver.cpp \
+        filerecvprogress.cpp \
         main.cpp \
         mainwindow.cpp \
         startupdialog.cpp \
@@ -41,6 +42,7 @@ HEADERS += \
         audiopackreceiver.h \
         config.h \
         filereceiver.h \
+        filerecvprogress.h \
         mainwindow.h \
         startupdialog.h \
         textchatdialog.h \
@@ -49,6 +51,7 @@ HEADERS += \
         videoframereceiver.h
 
 FORMS += \
+        filerecvprogress.ui \
         mainwindow.ui \
         startupdialog.ui \
         textchatdialog.ui

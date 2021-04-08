@@ -14,6 +14,8 @@ FileReceiver::~FileReceiver()
 {
     file_server->close();
     delete file_server;
+
+    delete m_progress;
 }
 
 void FileReceiver::run()
@@ -23,6 +25,10 @@ void FileReceiver::run()
 
     file_server->listen(m_address, file_port);
     connect(file_server, SIGNAL(newConnection()), this, SLOT(on_newConnection()), Qt::DirectConnection);
+
+    m_progress = new FileRecvProgress;
+    m_progress->hide();
+
     exec();
 }
 
@@ -33,7 +39,7 @@ void FileReceiver::on_newConnection()
         file_socket = file_server->nextPendingConnection();
         // qDebug() << file_socket->peerAddress().toString() << file_socket->peerPort();
         file_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
-        file_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024 * 8);     // 缓冲区超过 8K 会引起 程序异常结束 或 readyRead() 只触发一次
+        file_socket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024 * 8);     // Linux 中，缓冲区超过 8K 会引起 程序异常结束 或 readyRead() 只触发一次
 
         connect(file_socket, SIGNAL(readyRead()), this, SLOT(on_fileReadyRead()), Qt::DirectConnection);
         connect(file_socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)), Qt::DirectConnection);
@@ -48,7 +54,7 @@ void FileReceiver::on_fileReadyRead()
 
     QByteArray byteArray;
     byteArray.resize(static_cast<qint32>(file_socket->bytesAvailable()));
-    file_socket->read(byteArray.data(), byteArray.size());      // 使用 file_socket->realAll() 会引起 程序异常结束
+    byteArray = file_socket->readAll();
 
     if(!QString(byteArray).indexOf("File\n"))
     {
@@ -75,6 +81,8 @@ void FileReceiver::on_fileReadyRead()
             return;
         }
 
+        m_progress->show();
+
         // 处理粘包部分
         if(byteArray.size() > PACKET_MAX_SIZE)
         {
@@ -88,19 +96,21 @@ void FileReceiver::on_fileReadyRead()
             else
             {
                 receivedBytes += res;
+                m_progress->setValue(static_cast<int>(qreal(receivedBytes) / fileSize));
             }
 
             if(receivedBytes == fileSize)
             {
+                m_progress->setValue(100);
+
                 file->close();
                 // qDebug() << QFileInfo(*file).size();
                 // QDesktopServices::openUrl(QFileInfo(*file).absolutePath());
                 delete file;
 
                 file_socket->disconnectFromHost();
-                file_socket->close();
-                delete file_socket;
 
+                m_progress->hide();
                 receivedBytes = 0;
             }
         }
@@ -116,19 +126,21 @@ void FileReceiver::on_fileReadyRead()
     else
     {
         receivedBytes += res;
+        m_progress->setValue(static_cast<int>(qreal(receivedBytes) / fileSize));
     }
 
     if(receivedBytes == fileSize)
     {
+        m_progress->setValue(100);
+
         file->close();
         // qDebug() << QFileInfo(*file).size();
         // QDesktopServices::openUrl(QFileInfo(*file).absolutePath());
         delete file;
 
         file_socket->disconnectFromHost();
-        file_socket->close();
-        delete file_socket;
 
+        m_progress->hide();
         receivedBytes = 0;
     }
 }

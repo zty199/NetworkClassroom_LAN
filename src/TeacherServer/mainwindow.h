@@ -15,6 +15,7 @@
 #include "startupdialog.h"
 #include "videosurface.h"
 #include "screenpen.h"
+#include "filesendprogress.h"
 #include "textchatdialog.h"
 
 #include "videoframesender.h"
@@ -78,6 +79,8 @@ private:
     QMap<QString, QString> stuMap;
     int stuNum;
     bool flag_startup;
+
+    FileSendProgress *m_progress;
 
     TextChatDialog *m_textchat;
     bool flag_text;

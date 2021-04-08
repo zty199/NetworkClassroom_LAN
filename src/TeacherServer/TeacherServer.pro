@@ -30,6 +30,7 @@ CONFIG(release, debug|release): DEFINES += QT_NO_WARNING_OUTPUT QT_NO_DEBUG_OUTP
 SOURCES += \
         audiopacksender.cpp \
         filesender.cpp \
+        filesendprogress.cpp \
         main.cpp \
         mainwindow.cpp \
         screenpen.cpp \
@@ -43,6 +44,7 @@ HEADERS += \
         audiopacksender.h \
         config.h \
         filesender.h \
+        filesendprogress.h \
         mainwindow.h \
         screenpen.h \
         startupdialog.h \
@@ -53,6 +55,7 @@ HEADERS += \
         videosurface.h
 
 FORMS += \
+        filesendprogress.ui \
         mainwindow.ui \
         screenpen.ui \
         startupdialog.ui \
