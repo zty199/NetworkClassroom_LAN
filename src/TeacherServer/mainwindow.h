@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QSystemTrayIcon>
+#include <QMenu>
 #include <QCamera>
 #include <QCameraInfo>
 #include <QScreen>
@@ -33,13 +35,15 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
-    ~MainWindow() override;
-
-protected:
-    void closeEvent(QCloseEvent *) override;
+    ~MainWindow();
 
 private:
     Ui::MainWindow *ui;
+    QSystemTrayIcon *m_tray;
+    QMenu *t_menu;
+    QAction *t_show;
+    QAction *t_about;
+    QAction *t_exit;
 
     QList<QCameraInfo> availableCameras;
     QCamera *m_camera;
@@ -89,29 +93,37 @@ private:
     void initCamDevice();
     void initInputDevice();
     void initUI();
+    void initTray();
     void initConnections();
     void initCamera();
 
 private slots:
+    void on_exitTriggered(bool checked);
+    void on_trayActivated(QSystemTrayIcon::ActivationReason reason);
+
+    void on_btn_camera_clicked();
+    void on_cb_camera_currentIndexChanged(int index);
+    void on_cb_camRes_currentIndexChanged(int index);
+    void on_videoFrameChanged(QVideoFrame);
+
     void on_btn_screen_clicked();
     void on_cb_screenRes_currentIndexChanged(int index);
     void on_cb_screenHz_currentIndexChanged(int index);
     void on_btn_screenPen_clicked();
     void on_screenTimeOut();
-    void on_btn_camera_clicked();
-    void on_cb_camera_currentIndexChanged(int index);
-    void on_cb_camRes_currentIndexChanged(int index);
-    void on_videoFrameChanged(QVideoFrame);
+    void on_mouseMove();
+
     Q_INVOKABLE void on_videoFrameSent(QImage);     // Q_INVOKABLE 用来修饰成员函数，使其能够被 QMetaObject 调用（从 QRunnable 子线程中调用）
+
     void on_btn_audio_clicked();
     void on_cb_device_currentIndexChanged(int index);
     void on_slider_volume_valueChanged(int value);
     void on_volumeChanged(int value);
     void on_deviceReadyRead();
+
     void on_btn_fileTrans_clicked();
     void on_btn_signIn_clicked();
     void on_btn_textChat_clicked();
-    void on_mouseMove();
 
     void on_multicastReady(QNetworkInterface, QHostAddress, QString);
     void on_multicastNotReady();
@@ -121,6 +133,8 @@ private slots:
 
     void on_textAppend(QString);
     void on_textSend(QString);
+
+    void on_btn_about_clicked();
 
 signals:
     void volumeChanged(int value);

@@ -130,9 +130,9 @@
   <widget class="QPushButton" name="btn_multicast">
    <property name="geometry">
     <rect>
-     <x>90</x>
+     <x>80</x>
      <y>230</y>
-     <width>90</width>
+     <width>100</width>
      <height>30</height>
     </rect>
    </property>
@@ -145,7 +145,7 @@
     <rect>
      <x>220</x>
      <y>230</y>
-     <width>90</width>
+     <width>100</width>
      <height>30</height>
     </rect>
    </property>

@@ -11,6 +11,9 @@ StartUpDialog::StartUpDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    // 窗口关闭则调用析构函数，不用等待父窗口关闭
+    this->setAttribute(Qt::WA_DeleteOnClose, true);
+
     initUI();
     initConnections();
 }
@@ -18,6 +21,7 @@ StartUpDialog::StartUpDialog(QWidget *parent) :
 StartUpDialog::~StartUpDialog()
 {
     delete ui;
+    QApplication::quit();   // 启动窗口关闭则退出程序
 }
 
 void StartUpDialog::mousePressEvent(QMouseEvent *)
@@ -27,8 +31,9 @@ void StartUpDialog::mousePressEvent(QMouseEvent *)
 
 void StartUpDialog::initUI()
 {
-    setWindowFlag(Qt::WindowContextHelpButtonHint, false);
-    setWindowFlag(Qt::WindowStaysOnTopHint, true);
+    this->setWindowFlag(Qt::WindowContextHelpButtonHint, false);  // 禁用对话框帮助按钮
+    this->setWindowFlag(Qt::WindowStaysOnTopHint, true);          // 窗口置顶
+
     ui->btn_start->setDisabled(true);
 
     for(int i = 0; i < availableInterfaces.size(); i++)
@@ -49,6 +54,7 @@ void StartUpDialog::initConnections()
 void StartUpDialog::on_cb_network_currentIndexChanged(int index)
 {
     Q_UNUSED(index)
+
     m_interface = availableInterfaces.at(ui->cb_network->currentData().value<int>());
 }
 

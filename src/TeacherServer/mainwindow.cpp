@@ -5,11 +5,17 @@
 #include <QFileDialog>
 #include <QDateTime>
 #include <QMessageBox>
-// #include <QDesktopServices>
+#include <QDesktopServices>
+#include <QLocale>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
+    m_tray(new QSystemTrayIcon),
+    t_menu(new QMenu),
+    t_show(new QAction("Show MainWindow")),
+    t_about(new QAction("About")),
+    t_exit(new QAction("Exit")),
     availableCameras(QCameraInfo::availableCameras()),
     flag_camera(false),
     m_screen(QApplication::primaryScreen()),
@@ -44,6 +50,9 @@ MainWindow::MainWindow(QWidget *parent) :
     // 初始化 UI 设备列表
     initUI();
 
+    // 初始化托盘
+    initTray();
+
     // 初始化信号槽
     initConnections();
 
@@ -61,40 +70,8 @@ MainWindow::~MainWindow()
         delete text_transceiver;
     }
 
+    delete m_tray;
     delete ui;
-}
-
-void MainWindow::closeEvent(QCloseEvent *)
-{
-    if(flag_camera)
-    {
-        emit ui->btn_camera->clicked();
-    }
-    if(flag_screen)
-    {
-        emit ui->btn_screen->clicked();
-    }
-    if(flag_audio)
-    {
-        emit ui->btn_audio->clicked();
-    }
-
-    video_threadPool->clear();
-    video_threadPool->waitForDone();
-
-    audio_threadPool->clear();
-    audio_threadPool->waitForDone();
-
-    file_threadPool->clear();
-    file_threadPool->waitForDone();
-
-    if(flag_startup)
-    {
-        text_transceiver->quit();
-        text_transceiver->wait();
-    }
-
-    command_socket->writeDatagram(QString("Stop").toUtf8().data(), QString("Stop").toUtf8().size(), groupAddress, command_port);
 }
 
 void MainWindow::initUdpConnections()
@@ -155,6 +132,11 @@ void MainWindow::initUI()
     m_cursor->setStyleSheet("background-color: rgb(255, 255, 255);");
     m_cursor->hide();
 
+    // 初始化按钮样式
+    ui->btn_screen->setStyleSheet("text-align: left; padding-left: 10px;");
+    ui->btn_camera->setStyleSheet("text-align: left; padding-left: 10px;");
+    ui->btn_audio->setStyleSheet("text-align: left; padding-left: 10px;");
+
     // 初始化屏幕画笔
     m_screenPen->hide();                    // 启动时不显示屏幕画笔
     ui->btn_screenPen->setDisabled(true);   // 禁用屏幕画笔按钮
@@ -184,8 +166,43 @@ void MainWindow::initUI()
     m_startup->show();
 }
 
+void MainWindow::initTray()
+{
+    // 初始化托盘图标
+    t_menu->addAction(t_show);
+    t_menu->addAction(t_about);
+    t_menu->addAction(t_exit);
+    m_tray->setContextMenu(t_menu);
+    m_tray->setIcon(QIcon::fromTheme(":/icons/icons/camera-start.svg"));
+    m_tray->setToolTip(this->windowTitle());
+
+    m_tray->setVisible(true);
+}
+
 void MainWindow::initConnections()
 {
+    connect(t_show, &QAction::triggered, this, [=]()
+    {
+        if(flag_startup)
+        {
+            this->setWindowState(Qt::WindowActive); // 若窗口处于最小化状态则需要该语句
+            this->activateWindow();                 // 激活窗口获取焦点
+            this->show();                           // 若窗口被关闭则需要该语句
+        }
+        else
+        {
+            m_startup->setWindowState(Qt::WindowActive);
+            m_startup->activateWindow();
+            m_startup->show();
+        }
+    });
+    connect(t_about, &QAction::triggered, this, [=]()
+    {
+        emit ui->btn_about->clicked();
+    });
+    connect(t_exit, &QAction::triggered, this, &MainWindow::on_exitTriggered);
+    connect(m_tray, &QSystemTrayIcon::activated, this, &MainWindow::on_trayActivated);
+
     connect(screen_timer, SIGNAL(timeout()), this, SLOT(on_screenTimeOut()));
     connect(this, SIGNAL(volumeChanged(int)), this, SLOT(on_volumeChanged(int)));
     connect(screen_timer, SIGNAL(timeout()), this, SLOT(on_mouseMove()));    // 屏幕共享时标记鼠标位置
@@ -211,117 +228,71 @@ void MainWindow::initCamera()
     }
 }
 
-void MainWindow::on_btn_screen_clicked()
+void MainWindow::on_exitTriggered(bool checked)
 {
-    if(!flag_screen)
+    Q_UNUSED(checked)
+
+    // 停止所有共享
+    if(flag_camera)
     {
-        ui->btn_screenPen->setEnabled(true);    // 启用屏幕画笔按钮
-
-        screen_timer->setInterval(screenTimer);
-        screen_timer->start();                  // 启用计时器开始截图
-
-        m_cursor->show();                       // 显示指针标记
-
-        qDebug() << "Screen Share Started!";
-
-        ui->btn_screen->setIcon(QIcon::fromTheme(":/icons/icons/screen-share-start.svg"));
-
-        flag_screen = true;
-
-        flag_camera = true;
         emit ui->btn_camera->clicked();
     }
-    else
+    if(flag_screen)
     {
-        m_cursor->hide();
-        screen_timer->stop();
-        qDebug() << "Screen Share Stopped!";
-
-        ui->btn_screen->setIcon(QIcon::fromTheme(":/icons/icons/screen-share-stop.svg"));
-
-        // 终止视频传输时发送信号
-        video_threadPool->clear();
-        video_threadPool->waitForDone();
-        command_socket->writeDatagram(QString("Stop").toUtf8(), QString("Stop").toUtf8().size(), groupAddress, command_port);
-
-        ui->videoViewer->clear();
-
-        flag_screen = false;
-        ui->btn_screenPen->setDisabled(true);
+        emit ui->btn_screen->clicked();
     }
+    if(flag_audio)
+    {
+        emit ui->btn_audio->clicked();
+    }
+
+    // 等待所有子线程结束
+    video_threadPool->clear();
+    video_threadPool->waitForDone();
+
+    audio_threadPool->clear();
+    audio_threadPool->waitForDone();
+
+    file_threadPool->clear();
+    file_threadPool->waitForDone();
+
+    if(flag_startup)
+    {
+        text_transceiver->quit();
+        text_transceiver->wait();
+    }
+
+    // 向客户端发送停止信号
+    command_socket->writeDatagram(QString("Stop").toUtf8().data(), QString("Stop").toUtf8().size(), groupAddress, command_port);
+
+    // 退出程序
+    QApplication::quit();
 }
 
-void MainWindow::on_cb_screenRes_currentIndexChanged(int index)
+void MainWindow::on_trayActivated(QSystemTrayIcon::ActivationReason reason)
 {
-    Q_UNUSED(index)
-    screenRes = ui->cb_screenRes->currentData().value<QSize>();
-
-    // 限制 1080p@30Hz
-    if(screenRes == QSize(1920, 1080))
+    // 响应托盘图标点击事件
+    switch(reason)
     {
-        ui->cb_screenHz->removeItem(1);
-    }
-    else
+    case QSystemTrayIcon::Trigger:
     {
-        if(ui->cb_screenHz->count() == 1)
+        if(flag_startup)
         {
-            ui->cb_screenHz->addItem("60Hz", 15);
+            this->setWindowState(Qt::WindowActive);
+            this->activateWindow();
+            this->show();
+        }
+        else
+        {
+            m_startup->setWindowState(Qt::WindowActive);
+            m_startup->activateWindow();
+            m_startup->show();
         }
     }
-}
-
-void MainWindow::on_cb_screenHz_currentIndexChanged(int index)
-{
-    Q_UNUSED(index)
-    if(flag_screen)
-    {
-        screen_timer->stop();
+        break;
+    default:
+        break;
     }
-
-    screenTimer = ui->cb_screenHz->currentData().value<int>();
-    screen_timer->setInterval(screenTimer);
-
-    if(flag_screen)
-    {
-        screen_timer->start();
-    }
-}
-
-void MainWindow::on_btn_screenPen_clicked()
-{
-    this->showMinimized();
-    m_screenPen->showFullScreen();
-}
-
-void MainWindow::on_screenTimeOut()
-{
-    QImage image = m_screen->grabWindow(0).toImage();    // 截取桌面图像
-
-    /*
-    static QImage oldImage;
-
-    if(oldImage == image)
-    {
-        return;
-    }
-    oldImage = image;
-    */
-
-    image = image.scaled(image.size().boundedTo(screenRes), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
-    if(image.size().height() < 720)
-    {
-        video_threadPool->setMaxThreadCount(1);
-    }
-    else
-    {
-        /*
-         * 对 CPU 单核性能较弱的机型来说，建议使用多线程处理 720p 图像
-         * 由于接收端为单线程接收，不建议使用过多线程
-         */
-        video_threadPool->setMaxThreadCount(2);
-    }
-    video_threadPool->start(new VideoFrameSender(m_interface, m_address, image, this));
 }
 
 void MainWindow::on_btn_camera_clicked()
@@ -489,9 +460,135 @@ void MainWindow::on_videoFrameChanged(QVideoFrame frame)
     }
     else
     {
+        /*
+         * 对 CPU 单核性能较弱的机型来说，建议使用多线程处理 720p 图像
+         * 由于接收端为单线程接收，不建议使用过多线程
+         */
         video_threadPool->setMaxThreadCount(2);
     }
     video_threadPool->start(new VideoFrameSender(m_interface, m_address, image, this));
+}
+
+void MainWindow::on_btn_screen_clicked()
+{
+    if(!flag_screen)
+    {
+        ui->btn_screenPen->setEnabled(true);    // 启用屏幕画笔按钮
+
+        screen_timer->setInterval(screenTimer);
+        screen_timer->start();                  // 启用计时器开始截图
+
+        m_cursor->show();                       // 显示指针标记
+
+        qDebug() << "Screen Share Started!";
+
+        ui->btn_screen->setIcon(QIcon::fromTheme(":/icons/icons/screen-share-start.svg"));
+
+        flag_screen = true;
+
+        flag_camera = true;
+        emit ui->btn_camera->clicked();
+    }
+    else
+    {
+        m_cursor->hide();
+        screen_timer->stop();
+        qDebug() << "Screen Share Stopped!";
+
+        ui->btn_screen->setIcon(QIcon::fromTheme(":/icons/icons/screen-share-stop.svg"));
+
+        // 终止视频传输时发送信号
+        video_threadPool->clear();
+        video_threadPool->waitForDone();
+        command_socket->writeDatagram(QString("Stop").toUtf8(), QString("Stop").toUtf8().size(), groupAddress, command_port);
+
+        ui->videoViewer->clear();
+
+        flag_screen = false;
+        ui->btn_screenPen->setDisabled(true);
+    }
+}
+
+void MainWindow::on_cb_screenRes_currentIndexChanged(int index)
+{
+    Q_UNUSED(index)
+    screenRes = ui->cb_screenRes->currentData().value<QSize>();
+
+    // 限制 1080p@30Hz
+    if(screenRes == QSize(1920, 1080))
+    {
+        ui->cb_screenHz->removeItem(1);
+    }
+    else
+    {
+        if(ui->cb_screenHz->count() == 1)
+        {
+            ui->cb_screenHz->addItem("60Hz", 15);
+        }
+    }
+}
+
+void MainWindow::on_cb_screenHz_currentIndexChanged(int index)
+{
+    Q_UNUSED(index)
+    if(flag_screen)
+    {
+        screen_timer->stop();
+    }
+
+    screenTimer = ui->cb_screenHz->currentData().value<int>();
+    screen_timer->setInterval(screenTimer);
+
+    if(flag_screen)
+    {
+        screen_timer->start();
+    }
+}
+
+void MainWindow::on_btn_screenPen_clicked()
+{
+    this->showMinimized();
+    m_screenPen->showFullScreen();
+}
+
+void MainWindow::on_screenTimeOut()
+{
+    QImage image = m_screen->grabWindow(0).toImage();    // 截取桌面图像
+
+    /*
+    static QImage oldImage;
+
+    if(oldImage == image)
+    {
+        return;
+    }
+    oldImage = image;
+    */
+
+    image = image.scaled(image.size().boundedTo(screenRes), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+    if(image.size().height() < 720)
+    {
+        video_threadPool->setMaxThreadCount(1);
+    }
+    else
+    {
+        video_threadPool->setMaxThreadCount(2);
+    }
+    video_threadPool->start(new VideoFrameSender(m_interface, m_address, image, this));
+}
+
+void MainWindow::on_mouseMove()
+{
+    // 由于屏幕共享看不到鼠标，尝试标记鼠标位置
+    static QPoint oldPoint;
+    QPoint point = QCursor::pos(); // 获取鼠标的绝对位置
+    if(oldPoint != point)
+    {
+        m_cursor->move(point.x() + 1, point.y() + 1);
+        // qDebug() << "鼠标移动 " << point;
+        oldPoint = point;
+    }
 }
 
 void MainWindow::on_videoFrameSent(QImage image)
@@ -689,7 +786,7 @@ void MainWindow::on_btn_signIn_clicked()
     }
 
     QTextStream stream(&file);
-    QString newLine = "Index\tIP\tName\n";
+    QString newLine = "Index\tIP\t\tName\n";
     stream << newLine;
 
     int index = 1;
@@ -702,7 +799,15 @@ void MainWindow::on_btn_signIn_clicked()
     stream.flush();
     file.close();
 
-    // QDesktopServices::openUrl(QFileInfo(file).absolutePath());  // 打开文件所在文件夹
+    // 询问是否打开所在文件夹
+    QMessageBox::StandardButton res = QMessageBox::information(this,
+                                                               "Information",
+                                                               "File saved. Show in Explorer?",
+                                                               QMessageBox::Ok | QMessageBox::Cancel);
+    if(res == QMessageBox::Ok)
+    {
+        QDesktopServices::openUrl(QFileInfo(file).absolutePath());  // 打开文件所在文件夹
+    }
 }
 
 void MainWindow::on_btn_textChat_clicked()
@@ -717,16 +822,17 @@ void MainWindow::on_btn_textChat_clicked()
     }
 }
 
-void MainWindow::on_mouseMove()
+void MainWindow::on_btn_about_clicked()
 {
-    // 由于屏幕共享看不到鼠标，尝试标记鼠标位置
-    static QPoint oldPoint;
-    QPoint point = QCursor::pos(); // 获取鼠标的绝对位置
-    if(oldPoint != point)
+    QString m_locale = QLocale::system().name().split("_").at(0);
+
+    if(m_locale == "zh")
     {
-        m_cursor->move(point.x() + 1, point.y() + 1);
-        // qDebug() << "鼠标移动 " << point;
-        oldPoint = point;
+        QDesktopServices::openUrl(QUrl("https://gitee.com/zty199/NetworkClassroom_LAN"));
+    }
+    else
+    {
+        QDesktopServices::openUrl(QUrl("https://github.com/zty199/NetworkClassroom_LAN"));
     }
 }
 
@@ -758,13 +864,6 @@ void MainWindow::on_startUp()
     text_transceiver->start();
 
     this->show();
-
-    ui->btn_screen->setStyleSheet("text-align: left;");
-    ui->btn_camera->setStyleSheet("text-align: left;");
-    ui->btn_audio->setStyleSheet("text-align: left;");
-    ui->btn_screen->setIcon(QIcon::fromTheme(":/icons/icons/screen-share-stop.svg"));
-    ui->btn_camera->setIcon(QIcon::fromTheme(":/icons/icons/camera-stop.svg"));
-    ui->btn_audio->setIcon(QIcon::fromTheme(":/icons/icons/audio-input-stop.svg"));
 
     flag_startup = true;
 }

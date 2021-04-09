@@ -20,7 +20,7 @@ TextChatDialog::~TextChatDialog()
 
 void TextChatDialog::initUI()
 {
-    setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+    this->setWindowFlag(Qt::WindowContextHelpButtonHint, false);
     ui->pushButton->setFocus();
 }
 
