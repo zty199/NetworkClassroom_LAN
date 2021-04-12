@@ -65,7 +65,7 @@ void FileReceiver::on_fileReadyRead()
         // 另存为文件
         QString suffix = QFileInfo(fileName).suffix();
         QString tmp = QFileDialog::getSaveFileName(nullptr,
-                                                   "Save As",
+                                                   tr("Save As"),
                                                    QDir::homePath() + "/Desktop/" + fileName,
                                                    "*." + suffix);
         // 若文件路径为空 或 所选路径无法写入
@@ -77,7 +77,7 @@ void FileReceiver::on_fileReadyRead()
         file = new QFile(tmp);
         if(!file->open(QIODevice::WriteOnly))
         {
-            QMessageBox::critical(nullptr, "Critical", "File Save Failed!", QMessageBox::Ok);
+            QMessageBox::critical(nullptr, tr("Critical"), tr("File Save Failed!"), QMessageBox::Ok);
             return;
         }
 

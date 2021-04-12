@@ -92,7 +92,7 @@ void StartUpDialog::on_btn_multicast_clicked()
             ui->lineEdit->setText(m_address.toString());
         }
         m_name = ui->lineEdit->text();
-        ui->lb_welcome->setText("Welcome, " + m_name + "!");
+        ui->lb_welcome->setText(tr("Welcome, ") + m_name + tr("!"));
 
         flag_multicast = true;
 
@@ -103,8 +103,8 @@ void StartUpDialog::on_btn_multicast_clicked()
         ui->cb_network->setEnabled(true);
         ui->lineEdit->setEnabled(true);
         ui->lineEdit->clear();
-        ui->lb_welcome->setText("Welcome!");
-        ui->lb_connect->setText("Waiting for students...");
+        ui->lb_welcome->setText(tr("Welcome!"));
+        ui->lb_connect->setText(tr("Waiting for students..."));
         ui->btn_start->setDisabled(true);
 
         flag_multicast = false;
@@ -156,10 +156,10 @@ void StartUpDialog::on_studentConnected(int num)
 {
     if(num > 0)
     {
-        ui->lb_connect->setText(QString("%1 student(s) connected...").arg(num));
+        ui->lb_connect->setText(QString(tr("%1 student(s) connected...")).arg(num));
     }
     else
     {
-        ui->lb_connect->setText("Waiting for students...");
+        ui->lb_connect->setText(tr("Waiting for students..."));
     }
 }

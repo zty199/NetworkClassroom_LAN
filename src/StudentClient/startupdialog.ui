@@ -86,6 +86,9 @@
      <height>30</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string>Switch Network Card</string>
+   </property>
   </widget>
   <widget class="QLineEdit" name="lineEdit">
    <property name="geometry">
@@ -95,6 +98,9 @@
      <width>240</width>
      <height>30</height>
     </rect>
+   </property>
+   <property name="toolTip">
+    <string>Input Username</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
@@ -128,6 +134,9 @@
      <height>30</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string>Connect to Server</string>
+   </property>
    <property name="text">
     <string>Connect</string>
    </property>
@@ -140,6 +149,9 @@
      <width>90</width>
      <height>30</height>
     </rect>
+   </property>
+   <property name="toolTip">
+    <string>Start Client</string>
    </property>
    <property name="text">
     <string>Start</string>

@@ -3,5 +3,9 @@
         <file>icons/audio-output-start.svg</file>
         <file>icons/audio-output-stop.svg</file>
         <file>icons/client.svg</file>
+        <file>icons/textchat.svg</file>
+    </qresource>
+    <qresource prefix="/translations">
+        <file>translations/zh_CN.qm</file>
     </qresource>
 </RCC>

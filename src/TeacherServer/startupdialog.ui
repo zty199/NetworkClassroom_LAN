@@ -66,6 +66,9 @@
      <height>30</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string>Switch Network Card</string>
+   </property>
   </widget>
   <widget class="QLabel" name="lb_network">
    <property name="geometry">
@@ -77,7 +80,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Network Card:</string>
+    <string>Network Card: </string>
    </property>
    <property name="alignment">
     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -93,7 +96,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Nick Name:</string>
+    <string>Nick Name: </string>
    </property>
    <property name="alignment">
     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -107,6 +110,9 @@
      <width>240</width>
      <height>30</height>
     </rect>
+   </property>
+   <property name="toolTip">
+    <string>Input Username</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
@@ -140,6 +146,9 @@
      <height>30</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string>Start to Multicast</string>
+   </property>
    <property name="text">
     <string>Multicast</string>
    </property>
@@ -152,6 +161,9 @@
      <width>100</width>
      <height>30</height>
     </rect>
+   </property>
+   <property name="toolTip">
+    <string>Start Server</string>
    </property>
    <property name="text">
     <string>Start</string>

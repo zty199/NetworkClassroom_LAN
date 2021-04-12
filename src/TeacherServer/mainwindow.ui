@@ -76,6 +76,13 @@
       <height>30</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>Camera Share</string>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">text-align: left;
+padding-left: 10px;</string>
+    </property>
     <property name="text">
      <string>Camera</string>
     </property>
@@ -92,6 +99,13 @@
       <width>100</width>
       <height>30</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>Screen Share</string>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">text-align: left;
+padding-left: 10px;</string>
     </property>
     <property name="text">
      <string>Screen</string>
@@ -110,6 +124,9 @@
       <height>30</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>Switch Camera Device</string>
+    </property>
    </widget>
    <widget class="QPushButton" name="btn_audio">
     <property name="geometry">
@@ -119,6 +136,14 @@
       <width>100</width>
       <height>30</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>Audio Share</string>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">text-align: left;
+padding-left: 10px;
+</string>
     </property>
     <property name="text">
      <string>Audio</string>
@@ -137,6 +162,9 @@
       <height>30</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>Switch Audio Device</string>
+    </property>
    </widget>
    <widget class="QComboBox" name="cb_camRes">
     <property name="geometry">
@@ -147,6 +175,9 @@
       <height>30</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>Switch Camera Res</string>
+    </property>
    </widget>
    <widget class="QSlider" name="slider_volume">
     <property name="geometry">
@@ -156,6 +187,9 @@
       <width>280</width>
       <height>30</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>Adjust Volume</string>
     </property>
     <property name="maximum">
      <number>100</number>
@@ -185,6 +219,9 @@
       <height>30</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>Volume</string>
+    </property>
     <property name="text">
      <string>Volume: 100</string>
     </property>
@@ -201,8 +238,26 @@
       <height>30</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>Screen Pen</string>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">text-align: left;
+padding-left: 10px;
+</string>
+    </property>
     <property name="text">
      <string>Pen</string>
+    </property>
+    <property name="icon">
+     <iconset resource="resources.qrc">
+      <normaloff>:/icons/icons/screenpen.svg</normaloff>:/icons/icons/screenpen.svg</iconset>
+    </property>
+    <property name="iconSize">
+     <size>
+      <width>20</width>
+      <height>20</height>
+     </size>
     </property>
    </widget>
    <widget class="QComboBox" name="cb_screenRes">
@@ -214,6 +269,9 @@
       <height>30</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>Switch Screen Res</string>
+    </property>
    </widget>
    <widget class="QPushButton" name="btn_fileTrans">
     <property name="geometry">
@@ -224,8 +282,20 @@
       <height>30</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>File Transfer</string>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">text-align: left;
+padding-left: 10px;
+</string>
+    </property>
     <property name="text">
      <string>File</string>
+    </property>
+    <property name="icon">
+     <iconset resource="resources.qrc">
+      <normaloff>:/icons/icons/filetrans.svg</normaloff>:/icons/icons/filetrans.svg</iconset>
     </property>
    </widget>
    <widget class="QPushButton" name="btn_signIn">
@@ -237,8 +307,20 @@
       <height>30</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>Student SignIn</string>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">text-align: left;
+padding-left: 10px;
+</string>
+    </property>
     <property name="text">
      <string>SignIn</string>
+    </property>
+    <property name="icon">
+     <iconset resource="resources.qrc">
+      <normaloff>:/icons/icons/signin.svg</normaloff>:/icons/icons/signin.svg</iconset>
     </property>
    </widget>
    <widget class="QComboBox" name="cb_screenHz">
@@ -250,6 +332,9 @@
       <height>30</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>Switch Refresh Rate</string>
+    </property>
    </widget>
    <widget class="QPushButton" name="btn_textChat">
     <property name="geometry">
@@ -260,8 +345,20 @@
       <height>30</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>TextChat</string>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">text-align: left;
+padding-left: 10px;
+</string>
+    </property>
     <property name="text">
      <string>Chat</string>
+    </property>
+    <property name="icon">
+     <iconset resource="resources.qrc">
+      <normaloff>:/icons/icons/textchat.svg</normaloff>:/icons/icons/textchat.svg</iconset>
     </property>
    </widget>
    <widget class="QPushButton" name="btn_about">
@@ -273,8 +370,20 @@
       <height>30</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>About</string>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">text-align: left;
+padding-left: 10px;
+</string>
+    </property>
     <property name="text">
      <string>About</string>
+    </property>
+    <property name="icon">
+     <iconset resource="resources.qrc">
+      <normaloff>:/icons/icons/server.svg</normaloff>:/icons/icons/server.svg</iconset>
     </property>
    </widget>
   </widget>

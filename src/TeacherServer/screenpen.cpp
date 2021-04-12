@@ -21,9 +21,9 @@ ScreenPen::ScreenPen(QWidget *parent) :
     ui->screenPen_menu->setCursor(Qt::PointingHandCursor);
     ui->screenPen_menu->move((QGuiApplication::primaryScreen()->geometry().width() - ui->screenPen_menu->size().width()) / 2, 0);
 
-    setWindowFlag(Qt::FramelessWindowHint, true);
-    setAttribute(Qt::WA_TranslucentBackground, true);
-    showFullScreen();
+    this->setWindowFlag(Qt::FramelessWindowHint, true);
+    this->setAttribute(Qt::WA_TranslucentBackground, true);
+    this->showFullScreen();
 
     connect(new QShortcut(QKeySequence(Qt::Key_Escape), this), SIGNAL(activated()), this, SLOT(clearDrawType()));
     connect(new QShortcut(QKeySequence(Qt::Key_Plus), this), SIGNAL(activated()), this, SLOT(addPenWidth()));

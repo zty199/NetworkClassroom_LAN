@@ -73,8 +73,14 @@
      <height>90</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string>Press to Send</string>
+   </property>
    <property name="text">
     <string>Send</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Return, Ctrl+Enter</string>
    </property>
   </widget>
  </widget>

@@ -4,8 +4,15 @@
         <file>icons/audio-input-stop.svg</file>
         <file>icons/camera-start.svg</file>
         <file>icons/camera-stop.svg</file>
+        <file>icons/filetrans.svg</file>
+        <file>icons/screenpen.svg</file>
         <file>icons/screen-share-start.svg</file>
         <file>icons/screen-share-stop.svg</file>
         <file>icons/server.svg</file>
+        <file>icons/signin.svg</file>
+        <file>icons/textchat.svg</file>
+    </qresource>
+    <qresource prefix="/translations">
+        <file>translations/zh_CN.qm</file>
     </qresource>
 </RCC>

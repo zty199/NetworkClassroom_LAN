@@ -129,12 +129,18 @@
             <height>30</height>
            </size>
           </property>
+          <property name="toolTip">
+           <string>Turn On/Off Audio Device</string>
+          </property>
           <property name="text">
            <string>Audio</string>
           </property>
           <property name="icon">
            <iconset resource="resources.qrc">
             <normaloff>:/icons/icons/audio-output-start.svg</normaloff>:/icons/icons/audio-output-start.svg</iconset>
+          </property>
+          <property name="shortcut">
+           <string>Ctrl+M</string>
           </property>
          </widget>
         </item>
@@ -168,6 +174,9 @@
             <height>30</height>
            </size>
           </property>
+          <property name="toolTip">
+           <string>Switch Audio Device</string>
+          </property>
          </widget>
         </item>
         <item>
@@ -199,6 +208,9 @@
             <width>240</width>
             <height>30</height>
            </size>
+          </property>
+          <property name="toolTip">
+           <string>Adjust Volume</string>
           </property>
           <property name="maximum">
            <number>100</number>
@@ -244,6 +256,9 @@
             <height>30</height>
            </size>
           </property>
+          <property name="toolTip">
+           <string>Volume</string>
+          </property>
           <property name="text">
            <string>Volume: 100</string>
           </property>
@@ -282,8 +297,18 @@
             <height>30</height>
            </size>
           </property>
+          <property name="toolTip">
+           <string>TextChat</string>
+          </property>
           <property name="text">
            <string>Chat</string>
+          </property>
+          <property name="icon">
+           <iconset resource="resources.qrc">
+            <normaloff>:/icons/icons/textchat.svg</normaloff>:/icons/icons/textchat.svg</iconset>
+          </property>
+          <property name="shortcut">
+           <string>Return, Enter</string>
           </property>
          </widget>
         </item>

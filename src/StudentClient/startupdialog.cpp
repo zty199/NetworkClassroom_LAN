@@ -50,6 +50,7 @@ void StartUpDialog::initConnections()
 void StartUpDialog::on_cb_network_currentIndexChanged(int index)
 {
     Q_UNUSED(index)
+
     m_interface = availableInterfaces.at(ui->cb_network->currentData().value<int>());
 }
 
@@ -86,7 +87,7 @@ void StartUpDialog::on_btn_connect_clicked()
             ui->lineEdit->setText(m_address.toString());
         }
         m_name = ui->lineEdit->text();
-        ui->lb_welcome->setText("Welcome, " + m_name + "!");
+        ui->lb_welcome->setText(tr("Welcome, ") + m_name + tr("!"));
 
         flag_connect = true;
 
@@ -97,8 +98,8 @@ void StartUpDialog::on_btn_connect_clicked()
         ui->cb_network->setEnabled(true);
         ui->lineEdit->setEnabled(true);
         ui->lineEdit->clear();
-        ui->lb_welcome->setText("Welcome!");
-        ui->lb_connect->setText("Waiting for teacher...");
+        ui->lb_welcome->setText(tr("Welcome!"));
+        ui->lb_connect->setText(tr("Waiting for teacher..."));
         ui->btn_start->setDisabled(true);
 
         flag_connect = false;
@@ -148,6 +149,6 @@ void StartUpDialog::on_btn_start_clicked()
 
 void StartUpDialog::on_teacherConnected()
 {
-    ui->lb_connect->setText("Teacher Connected!");
+    ui->lb_connect->setText(tr("Teacher Connected!"));
     ui->btn_start->setEnabled(true);
 }

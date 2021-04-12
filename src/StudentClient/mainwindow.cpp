@@ -10,9 +10,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     m_tray(new QSystemTrayIcon),
     t_menu(new QMenu),
-    t_show(new QAction("Show MainWindow")),
-    t_about(new QAction("About")),
-    t_exit(new QAction("Exit")),
+    t_show(new QAction(tr("Show MainWindow"))),
+    t_about(new QAction(tr("About"))),
+    t_exit(new QAction(tr("Exit"))),
     availableDevices(QAudioDeviceInfo::availableDevices(QAudio::AudioOutput)),
     flag_audio(true),
     commandsend_socket(new QUdpSocket(this)),
@@ -64,7 +64,7 @@ void MainWindow::initUdpConnections()
     commandsend_socket->joinMulticastGroup(groupAddress, m_interface);
     commandsend_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     commandsend_socket->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);
-    // 这里是直连服务端 IP 的单播 socket，故不用设置 MulticastLoopback
+    // 这里是直连服务器 IP 的单播 socket，故不用设置 MulticastLoopback
     commandsend_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024 * 4);
 
     commandrecv_socket->close();
@@ -157,6 +157,7 @@ void MainWindow::initConnections()
     connect(m_tray, &QSystemTrayIcon::activated, this, &MainWindow::on_trayActivated);
 
     connect(this, SIGNAL(volumeChanged(int)), this, SLOT(on_volumeChanged(int)));
+
     connect(m_startup, SIGNAL(connectReady(QNetworkInterface,QHostAddress,QString)), this, SLOT(on_connectReady(QNetworkInterface,QHostAddress,QString)));
     connect(m_startup, SIGNAL(connectNotReady()), this, SLOT(on_connectNotReady()));
     connect(m_startup, SIGNAL(startUp()), this, SLOT(on_startUp()));
@@ -370,7 +371,7 @@ void MainWindow::on_slider_volume_valueChanged(int value)
 void MainWindow::on_volumeChanged(int value)
 {
     // 同步显示当前音量
-    ui->volume->setText("Volume: " + QString::number(value));
+    ui->volume->setText(tr("Volume: ") + QString::number(value));
 }
 
 void MainWindow::on_audioPackReceived(AudioPack ap)
@@ -465,7 +466,7 @@ void MainWindow::on_commandTimeOut()
 
 void MainWindow::on_commandReadyRead()
 {
-    // 接收服务端发送信息
+    // 接收服务器发送信息
     qint64 res;
     QByteArray byteArray;
 
@@ -478,7 +479,7 @@ void MainWindow::on_commandReadyRead()
             qDebug() << "command_socket: Read Datagram Failed!";
         }
 
-        // 接收到服务端上线信息
+        // 接收到服务器上线信息
         if(!QString(byteArray).indexOf("Teacher\n"))
         {
             teacher_address = QHostAddress(QString(byteArray).split("\n").at(1));
@@ -486,7 +487,7 @@ void MainWindow::on_commandReadyRead()
             return;
         }
 
-        // 接收到服务端视频共享结束信息
+        // 接收到服务器视频共享结束信息
         if(!QString(byteArray).indexOf("Stop"))
         {
             video_receiver->quit();

@@ -13,12 +13,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     m_tray(new QSystemTrayIcon),
     t_menu(new QMenu),
-    t_show(new QAction("Show MainWindow")),
-    t_about(new QAction("About")),
-    t_exit(new QAction("Exit")),
+    t_show(new QAction(tr("Show MainWindow"))),
+    t_about(new QAction(tr("About"))),
+    t_exit(new QAction(tr("Exit"))),
     availableCameras(QCameraInfo::availableCameras()),
     flag_camera(false),
-    m_screen(QApplication::primaryScreen()),
     m_cursor(new QLabel),
     screen_timer(new QTimer(this)),
     m_screenPen(new ScreenPen),
@@ -135,11 +134,6 @@ void MainWindow::initUI()
     m_cursor->setStyleSheet("background-color: rgb(255, 255, 255);");
     m_cursor->hide();
 
-    // 初始化按钮样式
-    ui->btn_screen->setStyleSheet("text-align: left; padding-left: 10px;");
-    ui->btn_camera->setStyleSheet("text-align: left; padding-left: 10px;");
-    ui->btn_audio->setStyleSheet("text-align: left; padding-left: 10px;");
-
     // 初始化屏幕画笔
     m_screenPen->hide();                    // 启动时不显示屏幕画笔
     ui->btn_screenPen->setDisabled(true);   // 禁用屏幕画笔按钮
@@ -207,8 +201,9 @@ void MainWindow::initConnections()
     connect(m_tray, &QSystemTrayIcon::activated, this, &MainWindow::on_trayActivated);
 
     connect(screen_timer, SIGNAL(timeout()), this, SLOT(on_screenTimeOut()));
+    connect(screen_timer, SIGNAL(timeout()), this, SLOT(on_mouseMove()));           // 屏幕共享时标记鼠标位置
     connect(this, SIGNAL(volumeChanged(int)), this, SLOT(on_volumeChanged(int)));
-    connect(screen_timer, SIGNAL(timeout()), this, SLOT(on_mouseMove()));    // 屏幕共享时标记鼠标位置
+
     connect(m_startup, SIGNAL(multicastReady(QNetworkInterface,QHostAddress,QString)), this, SLOT(on_multicastReady(QNetworkInterface,QHostAddress,QString)));
     connect(m_startup, SIGNAL(multicastNotReady()), this, SLOT(on_multicastNotReady()));
     connect(m_startup, SIGNAL(startUp()), this, SLOT(on_startUp()));
@@ -476,12 +471,13 @@ void MainWindow::on_btn_screen_clicked()
 {
     if(!flag_screen)
     {
-        ui->btn_screenPen->setEnabled(true);    // 启用屏幕画笔按钮
+        ui->btn_screenPen->setEnabled(true);            // 启用屏幕画笔按钮
 
+        m_screen = QGuiApplication::primaryScreen();    // 获取当前主屏幕
         screen_timer->setInterval(screenTimer);
-        screen_timer->start();                  // 启用计时器开始截图
+        screen_timer->start();                          // 启用计时器开始截图
 
-        m_cursor->show();                       // 显示指针标记
+        m_cursor->show();                               // 显示指针标记
 
         qDebug() << "Screen Share Started!";
 
@@ -515,6 +511,7 @@ void MainWindow::on_btn_screen_clicked()
 void MainWindow::on_cb_screenRes_currentIndexChanged(int index)
 {
     Q_UNUSED(index)
+
     screenRes = ui->cb_screenRes->currentData().value<QSize>();
 
     // 限制 1080p@30Hz
@@ -534,6 +531,7 @@ void MainWindow::on_cb_screenRes_currentIndexChanged(int index)
 void MainWindow::on_cb_screenHz_currentIndexChanged(int index)
 {
     Q_UNUSED(index)
+
     if(flag_screen)
     {
         screen_timer->stop();
@@ -723,9 +721,9 @@ void MainWindow::on_btn_fileTrans_clicked()
 {
     // 打开文件对话框
     QString fileName = QFileDialog::getOpenFileName(this,
-                                                    "Select File to Transfer",
+                                                    tr("Select File to Transfer"),
                                                     QDir::homePath() + "/Desktop/",
-                                                    "All Files (*.*)");
+                                                    tr("All Files (*.*)"));
     if(fileName.isEmpty())
     {
         return;
@@ -735,7 +733,7 @@ void MainWindow::on_btn_fileTrans_clicked()
     QFile file(fileName);
     if(!file.open(QIODevice::ReadOnly))
     {
-        QMessageBox::critical(this, "Critical", "File Open Failed!", QMessageBox::Ok);
+        QMessageBox::critical(this, tr("Critical"), tr("File Open Failed!"), QMessageBox::Ok);
         return;
     }
     file.close();
@@ -772,9 +770,9 @@ void MainWindow::on_btn_signIn_clicked()
 
     // 保存文件对话框
     fileName = QFileDialog::getSaveFileName(this,
-                                            "Export Sign-In Sheet",
+                                            tr("Export Sign-In Sheet"),
                                             QDir::homePath() + "/Desktop/" + fileName,
-                                            "Text Files (*.txt)");
+                                            tr("Text Files (*.txt)"));
     if(fileName.isEmpty())
     {
         return;
@@ -784,7 +782,7 @@ void MainWindow::on_btn_signIn_clicked()
     QFile file(fileName);
     if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
-        QMessageBox::critical(this, "Critical", "File Export Failed!", QMessageBox::Ok);
+        QMessageBox::critical(this, tr("Critical"), tr("File Export Failed!"), QMessageBox::Ok);
         return;
     }
 
@@ -804,8 +802,8 @@ void MainWindow::on_btn_signIn_clicked()
 
     // 询问是否打开所在文件夹
     QMessageBox::StandardButton res = QMessageBox::information(this,
-                                                               "Information",
-                                                               "File saved. Show in Explorer?",
+                                                               tr("Information"),
+                                                               tr("File saved. Show in Explorer?"),
                                                                QMessageBox::Ok | QMessageBox::Cancel);
     if(res == QMessageBox::Ok)
     {
@@ -850,7 +848,7 @@ void MainWindow::on_multicastReady(QNetworkInterface interface, QHostAddress add
     connect(command_socket, SIGNAL(readyRead()), this, SLOT(on_commandReadyRead()));
     emit command_socket->readyRead();
 
-    // 定时组播服务端 IP
+    // 定时组播服务器 IP
     command_timer->start(5000);
 }
 
@@ -873,7 +871,7 @@ void MainWindow::on_startUp()
 
 void MainWindow::on_commandTimeOut()
 {
-    // 定时组播服务端 IP
+    // 定时组播服务器 IP
     qint64 res;
     QString tmp = "Teacher\n" + m_address.toString();
     res = command_socket->writeDatagram(tmp.toUtf8().data(), tmp.toUtf8().size(), groupAddress, command_port);

@@ -64,6 +64,9 @@ FORMS += \
 RESOURCES += \
         resources.qrc
 
+TRANSLATIONS += \
+        translations/zh_CN.ts
+
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
