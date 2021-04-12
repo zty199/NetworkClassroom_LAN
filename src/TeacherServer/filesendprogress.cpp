@@ -8,6 +8,7 @@ FileSendProgress::FileSendProgress(QWidget *parent) :
     ui->setupUi(this);
 
     this->setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+    this->setWindowFlag(Qt::WindowMinimizeButtonHint, true);
 }
 
 FileSendProgress::~FileSendProgress()

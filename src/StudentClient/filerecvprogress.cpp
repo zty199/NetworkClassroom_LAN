@@ -8,6 +8,7 @@ FileRecvProgress::FileRecvProgress(QWidget *parent) :
     ui->setupUi(this);
 
     this->setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+    this->setWindowFlag(Qt::WindowMinimizeButtonHint, true);
 }
 
 FileRecvProgress::~FileRecvProgress()

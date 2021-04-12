@@ -34,6 +34,10 @@
   <property name="windowTitle">
    <string>TeacherServer</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="resources.qrc">
+    <normaloff>:/icons/icons/server.svg</normaloff>:/icons/icons/server.svg</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QLabel" name="videoViewer">
     <property name="geometry">

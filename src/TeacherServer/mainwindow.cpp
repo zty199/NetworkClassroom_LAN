@@ -61,6 +61,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    command_socket->close();
+    delete command_socket;
+
     delete video_threadPool;
     delete audio_threadPool;
     delete file_threadPool;
@@ -173,7 +176,7 @@ void MainWindow::initTray()
     t_menu->addAction(t_about);
     t_menu->addAction(t_exit);
     m_tray->setContextMenu(t_menu);
-    m_tray->setIcon(QIcon::fromTheme(":/icons/icons/camera-start.svg"));
+    m_tray->setIcon(QIcon::fromTheme(":/icons/icons/server.svg"));
     m_tray->setToolTip(this->windowTitle());
 
     m_tray->setVisible(true);

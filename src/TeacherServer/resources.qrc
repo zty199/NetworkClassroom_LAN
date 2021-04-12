@@ -6,5 +6,6 @@
         <file>icons/camera-stop.svg</file>
         <file>icons/screen-share-start.svg</file>
         <file>icons/screen-share-stop.svg</file>
+        <file>icons/server.svg</file>
     </qresource>
 </RCC>

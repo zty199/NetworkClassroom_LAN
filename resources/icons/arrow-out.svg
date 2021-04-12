@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   id="图层_1"
+   x="0px"
+   y="0px"
+   viewBox="0 0 48 48"
+   style="enable-background:new 0 0 48 48;"
+   xml:space="preserve"
+   sodipodi:docname="arrow-out.svg"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"><metadata
+   id="metadata21"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title /></cc:Work></rdf:RDF></metadata><defs
+   id="defs19">
+	
+		
+	
+</defs><sodipodi:namedview
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1"
+   objecttolerance="10"
+   gridtolerance="10"
+   guidetolerance="10"
+   inkscape:pageopacity="0"
+   inkscape:pageshadow="2"
+   inkscape:window-width="1920"
+   inkscape:window-height="940"
+   id="namedview17"
+   showgrid="false"
+   inkscape:zoom="15.9375"
+   inkscape:cx="37.427451"
+   inkscape:cy="22.129708"
+   inkscape:window-x="0"
+   inkscape:window-y="0"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="图层_1"
+   inkscape:document-rotation="0" />
+
+<g
+   id="g22"><g
+     id="g6"
+     transform="rotate(90,24,24)">
+		<circle
+   style="fill:#009fe8"
+   cx="24"
+   cy="24"
+   r="20"
+   id="circle4" />
+	</g><g
+     id="g14"
+     transform="matrix(0,0.99831699,-1.0515402,0,49.758676,0.01519628)">
+	<g
+   id="g12">
+		<path
+   style="fill:#ffffff"
+   d="m 14.569,24.003 5.428,0.003 V 33 c 0,0.552 0.513,1.006 1.066,1.006 h 6 c 0.552,0 0.934,-0.454 0.934,-1.006 v -8.994 l 5.478,-0.003 c 0.501,0 0.757,-0.546 0.402,-0.901 l -9.489,-9.86 c -0.22,-0.22 -0.575,-0.205 -0.794,0.015 l -9.419,9.837 c -0.354,0.355 -0.107,0.909 0.394,0.909 z"
+   id="path10" />
+	</g>
+</g></g>
+</svg>

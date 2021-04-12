@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Progress</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="resources.qrc">
+    <normaloff>:/icons/icons/client.svg</normaloff>:/icons/icons/client.svg</iconset>
+  </property>
   <widget class="QProgressBar" name="progressBar">
    <property name="geometry">
     <rect>
@@ -27,6 +31,8 @@
    </property>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

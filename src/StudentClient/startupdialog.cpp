@@ -9,6 +9,8 @@ StartUpDialog::StartUpDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    this->setAttribute(Qt::WA_DeleteOnClose, true);
+
     initUI();
     initConnections();
 }
@@ -16,6 +18,7 @@ StartUpDialog::StartUpDialog(QWidget *parent) :
 StartUpDialog::~StartUpDialog()
 {
     delete ui;
+    QApplication::quit();
 }
 
 void StartUpDialog::mousePressEvent(QMouseEvent *)
@@ -25,8 +28,8 @@ void StartUpDialog::mousePressEvent(QMouseEvent *)
 
 void StartUpDialog::initUI()
 {
-    setWindowFlag(Qt::WindowContextHelpButtonHint, false);
-    setWindowFlag(Qt::WindowStaysOnTopHint, true);
+    this->setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+    this->setWindowFlag(Qt::WindowMinimizeButtonHint, true);
     ui->btn_start->setDisabled(true);
 
     for(int i = 0; i < availableInterfaces.size(); i++)

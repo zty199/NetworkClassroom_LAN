@@ -31,8 +31,8 @@ void StartUpDialog::mousePressEvent(QMouseEvent *)
 
 void StartUpDialog::initUI()
 {
-    this->setWindowFlag(Qt::WindowContextHelpButtonHint, false);  // 禁用对话框帮助按钮
-    this->setWindowFlag(Qt::WindowStaysOnTopHint, true);          // 窗口置顶
+    this->setWindowFlag(Qt::WindowContextHelpButtonHint, false);    // 禁用对话框帮助按钮
+    this->setWindowFlag(Qt::WindowMinimizeButtonHint, true);        // 启用对话框最小化按钮
 
     ui->btn_start->setDisabled(true);
 

@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QSystemTrayIcon>
+#include <QMenu>
 #include <QTimer>
 #include <QAudio>
 #include <QAudioOutput>
@@ -26,11 +28,13 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-protected:
-    void closeEvent(QCloseEvent *);
-
 private:
     Ui::MainWindow *ui;
+    QSystemTrayIcon *m_tray;
+    QMenu *t_menu;
+    QAction *t_show;
+    QAction *t_about;
+    QAction *t_exit;
 
     QList<QAudioDeviceInfo> availableDevices;
     QAudioOutput *m_audioOutput;
@@ -62,9 +66,13 @@ private:
     void initUdpConnections();
     void initOutputDevice();
     void initUI();
+    void initTray();
     void initConnections();
 
 private slots:
+    void on_exitTriggered(bool checked);
+    void on_trayActivated(QSystemTrayIcon::ActivationReason reason);
+
     void on_videoFrameReceived(QImage);
     void on_btn_audio_clicked();
     void on_cb_device_currentIndexChanged(int index);

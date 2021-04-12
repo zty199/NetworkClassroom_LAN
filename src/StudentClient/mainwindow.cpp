@@ -2,10 +2,17 @@
 #include "ui_mainwindow.h"
 
 #include <QMetaType>
+#include <QDesktopServices>
+#include <QUrl>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
+    m_tray(new QSystemTrayIcon),
+    t_menu(new QMenu),
+    t_show(new QAction("Show MainWindow")),
+    t_about(new QAction("About")),
+    t_exit(new QAction("Exit")),
     availableDevices(QAudioDeviceInfo::availableDevices(QAudio::AudioOutput)),
     flag_audio(true),
     commandsend_socket(new QUdpSocket(this)),
@@ -22,6 +29,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     initOutputDevice();
     initUI();
+    initTray();
     initConnections();
 
     qDebug() << "Initialization Finished!";
@@ -29,14 +37,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    if(flag_startup)
-    {
-        delete video_receiver;
-        delete audio_receiver;
-        delete file_receiver;
-        delete text_transceiver;
-    }
-
     commandsend_socket->close();
     commandrecv_socket->close();
     delete commandsend_socket;
@@ -45,27 +45,16 @@ MainWindow::~MainWindow()
     command_timer->stop();
     delete command_timer;
 
-    delete m_startup;
-    delete m_textchat;
-    delete ui;
-}
-
-void MainWindow::closeEvent(QCloseEvent *)
-{
-    QString tmp = QString("Student\n") + m_address.toString() + QString("\n") + m_name + QString("\nDisconnect");
-    commandsend_socket->writeDatagram(tmp.toUtf8().data(), tmp.toUtf8().size(), teacher_address, command_port);
-
     if(flag_startup)
     {
-        video_receiver->quit();
-        video_receiver->wait();
-        audio_receiver->quit();
-        audio_receiver->wait();
-        file_receiver->quit();
-        file_receiver->wait();
-        text_transceiver->quit();
-        text_transceiver->wait();
+        delete video_receiver;
+        delete audio_receiver;
+        delete file_receiver;
+        delete text_transceiver;
     }
+
+    delete m_tray;
+    delete ui;
 }
 
 void MainWindow::initUdpConnections()
@@ -121,8 +110,52 @@ void MainWindow::initUI()
     m_startup->show();
 }
 
+void MainWindow::initTray()
+{
+    // 初始化托盘图标
+    t_menu->addAction(t_show);
+    t_menu->addAction(t_about);
+    t_menu->addAction(t_exit);
+    m_tray->setContextMenu(t_menu);
+    m_tray->setIcon(QIcon::fromTheme(":/icons/icons/client.svg"));
+    m_tray->setToolTip(this->windowTitle());
+
+    m_tray->setVisible(true);
+}
+
 void MainWindow::initConnections()
 {
+    connect(t_show, &QAction::triggered, this, [=]()
+    {
+        if(flag_startup)
+        {
+            this->setWindowState(Qt::WindowActive);
+            this->activateWindow();
+            this->show();
+        }
+        else
+        {
+            m_startup->setWindowState(Qt::WindowActive);
+            m_startup->activateWindow();
+            m_startup->show();
+        }
+    });
+    connect(t_about, &QAction::triggered, this, [=]()
+    {
+        QString m_locale = QLocale::system().name().split("_").at(0);
+
+        if(m_locale == "zh")
+        {
+            QDesktopServices::openUrl(QUrl("https://gitee.com/zty199/NetworkClassroom_LAN"));
+        }
+        else
+        {
+            QDesktopServices::openUrl(QUrl("https://github.com/zty199/NetworkClassroom_LAN"));
+        }
+    });
+    connect(t_exit, &QAction::triggered, this, &MainWindow::on_exitTriggered);
+    connect(m_tray, &QSystemTrayIcon::activated, this, &MainWindow::on_trayActivated);
+
     connect(this, SIGNAL(volumeChanged(int)), this, SLOT(on_volumeChanged(int)));
     connect(m_startup, SIGNAL(connectReady(QNetworkInterface,QHostAddress,QString)), this, SLOT(on_connectReady(QNetworkInterface,QHostAddress,QString)));
     connect(m_startup, SIGNAL(connectNotReady()), this, SLOT(on_connectNotReady()));
@@ -140,6 +173,55 @@ void MainWindow::on_videoFrameReceived(QImage image)
     else
     {
         ui->videoViewer->setPixmap(QPixmap::fromImage(image).scaled(ui->videoViewer->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    }
+}
+
+void MainWindow::on_exitTriggered(bool checked)
+{
+    Q_UNUSED(checked)
+
+    QString tmp = QString("Student\n") + m_address.toString() + QString("\n") + m_name + QString("\nDisconnect");
+    commandsend_socket->writeDatagram(tmp.toUtf8().data(), tmp.toUtf8().size(), teacher_address, command_port);
+
+    if(flag_startup)
+    {
+        video_receiver->quit();
+        video_receiver->wait();
+        audio_receiver->quit();
+        audio_receiver->wait();
+        file_receiver->quit();
+        file_receiver->wait();
+        text_transceiver->quit();
+        text_transceiver->wait();
+    }
+
+    // 退出程序
+    QApplication::quit();
+}
+
+void MainWindow::on_trayActivated(QSystemTrayIcon::ActivationReason reason)
+{
+    // 响应托盘图标点击事件
+    switch(reason)
+    {
+    case QSystemTrayIcon::Trigger:
+    {
+        if(flag_startup)
+        {
+            this->setWindowState(Qt::WindowActive);
+            this->activateWindow();
+            this->show();
+        }
+        else
+        {
+            m_startup->setWindowState(Qt::WindowActive);
+            m_startup->activateWindow();
+            m_startup->show();
+        }
+    }
+        break;
+    default:
+        break;
     }
 }
 
