@@ -16,7 +16,6 @@ int main(int argc, char *argv[])
     QTranslator ts;
     ts.load("zh_CN.qm", ":/translations/translations");
 
-    // 中文环境下加载中文翻译文件，默认为英文
     if(QLocale::system().name().split("_").at(0) == "zh")
     {
         a.installTranslator(&ts);

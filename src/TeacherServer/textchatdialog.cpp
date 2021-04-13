@@ -1,8 +1,6 @@
 #include "textchatdialog.h"
 #include "ui_textchatdialog.h"
 
-#include <QShortcut>
-
 TextChatDialog::TextChatDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::TextChatDialog)
@@ -32,6 +30,12 @@ void TextChatDialog::initConnections()
 
 void TextChatDialog::on_pushButton_clicked()
 {
+    // 发送信息为空则不发送
+    if(ui->textEdit->toPlainText().isEmpty())
+    {
+        return;
+    }
+
     QString body = ui->textEdit->toPlainText();
     emit textSend(body);
 

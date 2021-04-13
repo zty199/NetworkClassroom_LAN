@@ -308,7 +308,7 @@
             <normaloff>:/icons/icons/textchat.svg</normaloff>:/icons/icons/textchat.svg</iconset>
           </property>
           <property name="shortcut">
-           <string>Return, Enter</string>
+           <string>Ctrl+Enter</string>
           </property>
          </widget>
         </item>

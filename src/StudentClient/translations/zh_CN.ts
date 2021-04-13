@@ -81,26 +81,26 @@
     </message>
     <message>
         <location filename="../mainwindow.ui" line="311"/>
-        <source>Return, Enter</source>
+        <source>Ctrl+Enter</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="13"/>
+        <location filename="../mainwindow.cpp" line="15"/>
         <source>Show MainWindow</source>
         <translation>显示主界面</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="14"/>
+        <location filename="../mainwindow.cpp" line="16"/>
         <source>About</source>
         <translation>关于</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="15"/>
+        <location filename="../mainwindow.cpp" line="17"/>
         <source>Exit</source>
         <translation>退出</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="374"/>
+        <location filename="../mainwindow.cpp" line="390"/>
         <source>Volume: </source>
         <translation>音量： </translation>
     </message>
@@ -209,7 +209,7 @@
     </message>
     <message>
         <location filename="../textchatdialog.ui" line="83"/>
-        <source>Ctrl+Return, Ctrl+Enter</source>
+        <source>Ctrl+Enter</source>
         <translation></translation>
     </message>
 </context>

@@ -80,7 +80,7 @@
     <string>Send</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Return, Ctrl+Enter</string>
+    <string>Ctrl+Enter</string>
    </property>
   </widget>
  </widget>

@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <QShortcut>
 #include <QMetaType>
 #include <QDesktopServices>
 #include <QUrl>
@@ -8,6 +9,7 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
+    flag_fullscreen(false),
     m_tray(new QSystemTrayIcon),
     t_menu(new QMenu),
     t_show(new QAction(tr("Show MainWindow"))),
@@ -125,6 +127,20 @@ void MainWindow::initTray()
 
 void MainWindow::initConnections()
 {
+    connect(new QShortcut(QKeySequence(Qt::ALT + Qt::Key_Enter), this), &QShortcut::activated, this, [=]()
+    {
+        if(!flag_fullscreen)
+        {
+            this->showFullScreen();
+            flag_fullscreen = true;
+        }
+        else
+        {
+            this->showNormal();
+            flag_fullscreen = false;
+        }
+    });
+
     connect(t_show, &QAction::triggered, this, [=]()
     {
         if(flag_startup)

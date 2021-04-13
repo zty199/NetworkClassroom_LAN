@@ -90,6 +90,9 @@ padding-left: 10px;</string>
      <iconset resource="resources.qrc">
       <normaloff>:/icons/icons/camera-stop.svg</normaloff>:/icons/icons/camera-stop.svg</iconset>
     </property>
+    <property name="shortcut">
+     <string>Ctrl+Shift+C</string>
+    </property>
    </widget>
    <widget class="QPushButton" name="btn_screen">
     <property name="geometry">
@@ -113,6 +116,9 @@ padding-left: 10px;</string>
     <property name="icon">
      <iconset resource="resources.qrc">
       <normaloff>:/icons/icons/screen-share-stop.svg</normaloff>:/icons/icons/screen-share-stop.svg</iconset>
+    </property>
+    <property name="shortcut">
+     <string>Ctrl+Shift+S</string>
     </property>
    </widget>
    <widget class="QComboBox" name="cb_camera">
@@ -151,6 +157,9 @@ padding-left: 10px;
     <property name="icon">
      <iconset resource="resources.qrc">
       <normaloff>:/icons/icons/audio-input-stop.svg</normaloff>:/icons/icons/audio-input-stop.svg</iconset>
+    </property>
+    <property name="shortcut">
+     <string>Ctrl+M</string>
     </property>
    </widget>
    <widget class="QComboBox" name="cb_device">
@@ -204,7 +213,7 @@ padding-left: 10px;
      <enum>Qt::Horizontal</enum>
     </property>
     <property name="tickPosition">
-     <enum>QSlider::TicksAbove</enum>
+     <enum>QSlider::NoTicks</enum>
     </property>
     <property name="tickInterval">
      <number>20</number>
@@ -259,6 +268,9 @@ padding-left: 10px;
       <height>20</height>
      </size>
     </property>
+    <property name="shortcut">
+     <string>Ctrl+P</string>
+    </property>
    </widget>
    <widget class="QComboBox" name="cb_screenRes">
     <property name="geometry">
@@ -297,6 +309,9 @@ padding-left: 10px;
      <iconset resource="resources.qrc">
       <normaloff>:/icons/icons/filetrans.svg</normaloff>:/icons/icons/filetrans.svg</iconset>
     </property>
+    <property name="shortcut">
+     <string>Ctrl+F</string>
+    </property>
    </widget>
    <widget class="QPushButton" name="btn_signIn">
     <property name="geometry">
@@ -321,6 +336,9 @@ padding-left: 10px;
     <property name="icon">
      <iconset resource="resources.qrc">
       <normaloff>:/icons/icons/signin.svg</normaloff>:/icons/icons/signin.svg</iconset>
+    </property>
+    <property name="shortcut">
+     <string>Ctrl+S</string>
     </property>
    </widget>
    <widget class="QComboBox" name="cb_screenHz">
@@ -360,6 +378,9 @@ padding-left: 10px;
      <iconset resource="resources.qrc">
       <normaloff>:/icons/icons/textchat.svg</normaloff>:/icons/icons/textchat.svg</iconset>
     </property>
+    <property name="shortcut">
+     <string>Ctrl+Enter</string>
+    </property>
    </widget>
    <widget class="QPushButton" name="btn_about">
     <property name="geometry">
@@ -384,6 +405,9 @@ padding-left: 10px;
     <property name="icon">
      <iconset resource="resources.qrc">
       <normaloff>:/icons/icons/server.svg</normaloff>:/icons/icons/server.svg</iconset>
+    </property>
+    <property name="shortcut">
+     <string>Ctrl+A</string>
     </property>
    </widget>
   </widget>

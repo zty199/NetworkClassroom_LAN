@@ -30,6 +30,11 @@ void TextChatDialog::initConnections()
 
 void TextChatDialog::on_pushButton_clicked()
 {
+    if(ui->textEdit->toPlainText().isEmpty())
+    {
+        return;
+    }
+
     QString body = ui->textEdit->toPlainText();
     emit textSend(body);
 

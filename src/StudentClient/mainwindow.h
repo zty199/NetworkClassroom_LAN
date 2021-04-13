@@ -30,6 +30,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    bool flag_fullscreen;
     QSystemTrayIcon *m_tray;
     QMenu *t_menu;
     QAction *t_show;
