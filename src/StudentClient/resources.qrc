@@ -1,9 +1,9 @@
 <RCC>
     <qresource prefix="/icons">
-        <file>icons/audio-output-start.svg</file>
-        <file>icons/audio-output-stop.svg</file>
-        <file>icons/client.svg</file>
-        <file>icons/textchat.svg</file>
+        <file>icons/audio-output-start.png</file>
+        <file>icons/audio-output-stop.png</file>
+        <file>icons/client.png</file>
+        <file>icons/textchat.png</file>
     </qresource>
     <qresource prefix="/translations">
         <file>translations/zh_CN.qm</file>

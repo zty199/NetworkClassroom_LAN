@@ -33,7 +33,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
-    <normaloff>:/icons/icons/client.svg</normaloff>:/icons/icons/client.svg</iconset>
+    <normaloff>:/icons/icons/client.png</normaloff>:/icons/icons/client.png</iconset>
   </property>
   <property name="layoutDirection">
    <enum>Qt::LeftToRight</enum>
@@ -137,7 +137,7 @@
           </property>
           <property name="icon">
            <iconset resource="resources.qrc">
-            <normaloff>:/icons/icons/audio-output-start.svg</normaloff>:/icons/icons/audio-output-start.svg</iconset>
+            <normaloff>:/icons/icons/audio-output-start.png</normaloff>:/icons/icons/audio-output-start.png</iconset>
           </property>
           <property name="shortcut">
            <string>Ctrl+M</string>
@@ -305,7 +305,7 @@
           </property>
           <property name="icon">
            <iconset resource="resources.qrc">
-            <normaloff>:/icons/icons/textchat.svg</normaloff>:/icons/icons/textchat.svg</iconset>
+            <normaloff>:/icons/icons/textchat.png</normaloff>:/icons/icons/textchat.png</iconset>
           </property>
           <property name="shortcut">
            <string>Ctrl+Enter</string>

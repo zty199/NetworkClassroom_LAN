@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
-    <normaloff>:/icons/icons/server.svg</normaloff>:/icons/icons/server.svg</iconset>
+    <normaloff>:/icons/icons/server.png</normaloff>:/icons/icons/server.png</iconset>
   </property>
   <widget class="QWidget" name="screenPen_menu" native="true">
    <property name="geometry">

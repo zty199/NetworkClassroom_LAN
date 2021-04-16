@@ -33,7 +33,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
-    <normaloff>:/icons/icons/client.svg</normaloff>:/icons/icons/client.svg</iconset>
+    <normaloff>:/icons/icons/client.png</normaloff>:/icons/icons/client.png</iconset>
   </property>
   <widget class="QLabel" name="lb_welcome">
    <property name="geometry">

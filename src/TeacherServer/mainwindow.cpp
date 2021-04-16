@@ -170,7 +170,7 @@ void MainWindow::initTray()
     t_menu->addAction(t_about);
     t_menu->addAction(t_exit);
     m_tray->setContextMenu(t_menu);
-    m_tray->setIcon(QIcon::fromTheme(":/icons/icons/server.svg"));
+    m_tray->setIcon(QIcon::fromTheme(":/icons/icons/server.png"));
     m_tray->setToolTip(this->windowTitle());
 
     m_tray->setVisible(true);
@@ -302,7 +302,7 @@ void MainWindow::on_btn_camera_clicked()
         connect(m_viewFinder, SIGNAL(videoFrameChanged(QVideoFrame)), this, SLOT(on_videoFrameChanged(QVideoFrame)));
         qDebug() << "Camera Started!";
 
-        ui->btn_camera->setIcon(QIcon::fromTheme(":/icons/icons/camera-start.svg"));
+        ui->btn_camera->setIcon(QIcon::fromTheme(":/icons/icons/camera-start.png"));
 
         // 摄像头设备启动后才能获取支持的图像格式列表
         initCamera();
@@ -320,7 +320,7 @@ void MainWindow::on_btn_camera_clicked()
         m_camera->stop();
         qDebug() << "Camera Stopped!";
 
-        ui->btn_camera->setIcon(QIcon::fromTheme(":/icons/icons/camera-stop.svg"));
+        ui->btn_camera->setIcon(QIcon::fromTheme(":/icons/icons/camera-stop.png"));
 
         video_threadPool->clear();
         video_threadPool->waitForDone();
@@ -481,7 +481,7 @@ void MainWindow::on_btn_screen_clicked()
 
         qDebug() << "Screen Share Started!";
 
-        ui->btn_screen->setIcon(QIcon::fromTheme(":/icons/icons/screen-share-start.svg"));
+        ui->btn_screen->setIcon(QIcon::fromTheme(":/icons/icons/screen-share-start.png"));
 
         flag_screen = true;
 
@@ -494,7 +494,7 @@ void MainWindow::on_btn_screen_clicked()
         screen_timer->stop();
         qDebug() << "Screen Share Stopped!";
 
-        ui->btn_screen->setIcon(QIcon::fromTheme(":/icons/icons/screen-share-stop.svg"));
+        ui->btn_screen->setIcon(QIcon::fromTheme(":/icons/icons/screen-share-stop.png"));
 
         // 终止视频传输时发送信号
         video_threadPool->clear();
@@ -606,7 +606,7 @@ void MainWindow::on_btn_audio_clicked()
         connect(m_audioDevice, SIGNAL(readyRead()), this, SLOT(on_deviceReadyRead()));
         qDebug() << "Audio Share Started!";
 
-        ui->btn_audio->setIcon(QIcon::fromTheme(":/icons/icons/audio-input-start.svg"));
+        ui->btn_audio->setIcon(QIcon::fromTheme(":/icons/icons/audio-input-start.png"));
 
         flag_audio = true;
     }
@@ -617,7 +617,7 @@ void MainWindow::on_btn_audio_clicked()
         m_audioInput->stop();
         qDebug() << "Audio Share Stopped!";
 
-        ui->btn_audio->setIcon(QIcon::fromTheme(":/icons/icons/audio-input-stop.svg"));
+        ui->btn_audio->setIcon(QIcon::fromTheme(":/icons/icons/audio-input-stop.png"));
 
         flag_audio = false;
 

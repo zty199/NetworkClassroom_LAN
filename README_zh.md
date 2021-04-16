@@ -55,6 +55,8 @@
 
 * [Qt多网卡组播问题解决方法](https://blog.csdn.net/sun_xf1/article/details/106423552)
 
+* [扯淡的多播参数IP_MULTICAST_LOOP](https://blog.csdn.net/weixin_34014277/article/details/89985878)
+
 * [Qtliveradio](https://github.com/haidragon/Qtliveradio)
 
 * [海天鹰屏幕笔](https://github.com/sonichy/HTYScreenPen)
@@ -72,6 +74,17 @@
 * [解决 Qt 对象跨线程调用问题](https://blog.csdn.net/u012321968/article/details/108214644)
 
 * [QMap 的增删改查](https://blog.csdn.net/hejinjing_tom_com/article/details/48103455)
+
+* [Qt子窗体关闭时，不执行析构函数](https://blog.csdn.net/u012199908/article/details/40109169)
+
+* [Qt最小化到托盘、恢复并置顶](https://blog.csdn.net/wayrboy/article/details/79117012)
+
+## 感谢
+* [haidragon/Qtliveradio](https://github.com/haidragon/Qtliveradio)
+
+* [sonichy/HTYScreenPen](https://github.com/sonichy/HTYScreenPen)
+
+* [itay-grudev/SingleApplication](https://github.com/itay-grudev/SingleApplication)
 
 ## 声明
 该项目为大学本科毕业设计，仅供学习交流使用。

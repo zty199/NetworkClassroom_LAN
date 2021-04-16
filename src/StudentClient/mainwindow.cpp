@@ -119,7 +119,7 @@ void MainWindow::initTray()
     t_menu->addAction(t_about);
     t_menu->addAction(t_exit);
     m_tray->setContextMenu(t_menu);
-    m_tray->setIcon(QIcon::fromTheme(":/icons/icons/client.svg"));
+    m_tray->setIcon(QIcon::fromTheme(":/icons/icons/client.png"));
     m_tray->setToolTip(this->windowTitle());
 
     m_tray->setVisible(true);
@@ -250,7 +250,7 @@ void MainWindow::on_btn_audio_clicked()
     if(!flag_audio)
     {
         ui->slider_volume->setValue(curVolume);
-        ui->btn_audio->setIcon(QIcon::fromTheme(":/icons/icons/audio-output-start.svg"));
+        ui->btn_audio->setIcon(QIcon::fromTheme(":/icons/icons/audio-output-start.png"));
         flag_audio = true;
     }
     else
@@ -265,7 +265,7 @@ void MainWindow::on_btn_audio_clicked()
         }
 
         ui->slider_volume->setValue(0);
-        ui->btn_audio->setIcon(QIcon::fromTheme(":/icons/icons/audio-output-stop.svg"));
+        ui->btn_audio->setIcon(QIcon::fromTheme(":/icons/icons/audio-output-stop.png"));
         flag_audio = false;
 
         // 刷新音频输出可用设备列表
@@ -463,7 +463,7 @@ void MainWindow::on_startUp()
 
     flag_startup = true;
 
-    ui->btn_audio->setIcon(QIcon::fromTheme(":/icons/icons/audio-output-start.svg"));
+    ui->btn_audio->setIcon(QIcon::fromTheme(":/icons/icons/audio-output-start.png"));
 
     this->show();
 }

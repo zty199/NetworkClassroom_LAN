@@ -36,7 +36,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
-    <normaloff>:/icons/icons/server.svg</normaloff>:/icons/icons/server.svg</iconset>
+    <normaloff>:/icons/icons/server.png</normaloff>:/icons/icons/server.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QLabel" name="videoViewer">
@@ -88,7 +88,7 @@ padding-left: 10px;</string>
     </property>
     <property name="icon">
      <iconset resource="resources.qrc">
-      <normaloff>:/icons/icons/camera-stop.svg</normaloff>:/icons/icons/camera-stop.svg</iconset>
+      <normaloff>:/icons/icons/camera-stop.png</normaloff>:/icons/icons/camera-stop.png</iconset>
     </property>
     <property name="shortcut">
      <string>Ctrl+Shift+C</string>
@@ -115,7 +115,7 @@ padding-left: 10px;</string>
     </property>
     <property name="icon">
      <iconset resource="resources.qrc">
-      <normaloff>:/icons/icons/screen-share-stop.svg</normaloff>:/icons/icons/screen-share-stop.svg</iconset>
+      <normaloff>:/icons/icons/screen-share-stop.png</normaloff>:/icons/icons/screen-share-stop.png</iconset>
     </property>
     <property name="shortcut">
      <string>Ctrl+Shift+S</string>
@@ -156,7 +156,7 @@ padding-left: 10px;
     </property>
     <property name="icon">
      <iconset resource="resources.qrc">
-      <normaloff>:/icons/icons/audio-input-stop.svg</normaloff>:/icons/icons/audio-input-stop.svg</iconset>
+      <normaloff>:/icons/icons/audio-input-stop.png</normaloff>:/icons/icons/audio-input-stop.png</iconset>
     </property>
     <property name="shortcut">
      <string>Ctrl+M</string>
@@ -260,7 +260,7 @@ padding-left: 10px;
     </property>
     <property name="icon">
      <iconset resource="resources.qrc">
-      <normaloff>:/icons/icons/screenpen.svg</normaloff>:/icons/icons/screenpen.svg</iconset>
+      <normaloff>:/icons/icons/screenpen.png</normaloff>:/icons/icons/screenpen.png</iconset>
     </property>
     <property name="iconSize">
      <size>
@@ -307,7 +307,7 @@ padding-left: 10px;
     </property>
     <property name="icon">
      <iconset resource="resources.qrc">
-      <normaloff>:/icons/icons/filetrans.svg</normaloff>:/icons/icons/filetrans.svg</iconset>
+      <normaloff>:/icons/icons/filetrans.png</normaloff>:/icons/icons/filetrans.png</iconset>
     </property>
     <property name="shortcut">
      <string>Ctrl+F</string>
@@ -335,7 +335,7 @@ padding-left: 10px;
     </property>
     <property name="icon">
      <iconset resource="resources.qrc">
-      <normaloff>:/icons/icons/signin.svg</normaloff>:/icons/icons/signin.svg</iconset>
+      <normaloff>:/icons/icons/signin.png</normaloff>:/icons/icons/signin.png</iconset>
     </property>
     <property name="shortcut">
      <string>Ctrl+S</string>
@@ -376,7 +376,7 @@ padding-left: 10px;
     </property>
     <property name="icon">
      <iconset resource="resources.qrc">
-      <normaloff>:/icons/icons/textchat.svg</normaloff>:/icons/icons/textchat.svg</iconset>
+      <normaloff>:/icons/icons/textchat.png</normaloff>:/icons/icons/textchat.png</iconset>
     </property>
     <property name="shortcut">
      <string>Ctrl+Enter</string>
@@ -404,7 +404,7 @@ padding-left: 10px;
     </property>
     <property name="icon">
      <iconset resource="resources.qrc">
-      <normaloff>:/icons/icons/server.svg</normaloff>:/icons/icons/server.svg</iconset>
+      <normaloff>:/icons/icons/server.png</normaloff>:/icons/icons/server.png</iconset>
     </property>
     <property name="shortcut">
      <string>Ctrl+A</string>
