@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);    // 设置应用支持 HiDPI 缩放
 
     // 限制单实例运行，指定 APP_ID 识别进程
-    QtSingleApplication a(QString("nc_server"), argc, argv);
+    QtSingleApplication a(QString("TeacherServer"), argc, argv);
     if(a.isRunning())
     {
         // 若进程已启动则发送信号并退出

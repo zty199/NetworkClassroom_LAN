@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
-    QtSingleApplication a(QString("nc_client"), argc, argv);
+    QtSingleApplication a(QString("StudentClient"), argc, argv);
     if(a.isRunning())
     {
         a.sendMessage("already_running");
