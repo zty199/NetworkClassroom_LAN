@@ -1,5 +1,5 @@
 #include "mainwindow.h"
-#include <QApplication>
+#include <QtSingleApplication>
 
 #include <QLocale>
 #include <QTranslator>
@@ -8,20 +8,29 @@ int main(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
-    QApplication a(argc, argv);
+    QtSingleApplication a(QString("nc_client"), argc, argv);
+    if(a.isRunning())
+    {
+        a.sendMessage("already_running");
+        return EXIT_SUCCESS;
+    }
 
-    a.setQuitOnLastWindowClosed(false); // 存在托盘时，关闭窗口程序仍然运行
-    // a.setStyle("fusion");
+    a.setQuitOnLastWindowClosed(false);
+#ifdef Q_OS_WINDOWS
+    a.setStyle("fusion");
+#endif
 
     QTranslator ts;
-    ts.load("zh_CN.qm", ":/translations/translations");
-
     if(QLocale::system().name().split("_").at(0) == "zh")
     {
+        ts.load("zh_CN.qm", ":/translations/translations");
         a.installTranslator(&ts);
     }
 
     MainWindow w;
+    a.setActivationWindow(&w, false);
+    QObject::connect(&a, SIGNAL(messageReceived(QString)), &w, SLOT(on_messageReceived(QString)));
+
     // w.show();
 
     return a.exec();

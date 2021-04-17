@@ -181,15 +181,22 @@ void MainWindow::initConnections()
     connect(m_textchat, SIGNAL(textSend(QString)), this, SLOT(on_textSend(QString)));
 }
 
-void MainWindow::on_videoFrameReceived(QImage image)
+void MainWindow::on_messageReceived(QString msg)
 {
-    if(image.isNull())
+    if(msg == "already_running")
     {
-        ui->videoViewer->clear();
-    }
-    else
-    {
-        ui->videoViewer->setPixmap(QPixmap::fromImage(image).scaled(ui->videoViewer->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        if(flag_startup)
+        {
+            this->setWindowState(Qt::WindowActive);
+            this->activateWindow();
+            this->show();
+        }
+        else
+        {
+            m_startup->setWindowState(Qt::WindowActive);
+            m_startup->activateWindow();
+            m_startup->show();
+        }
     }
 }
 
@@ -239,6 +246,18 @@ void MainWindow::on_trayActivated(QSystemTrayIcon::ActivationReason reason)
         break;
     default:
         break;
+    }
+}
+
+void MainWindow::on_videoFrameReceived(QImage image)
+{
+    if(image.isNull())
+    {
+        ui->videoViewer->clear();
+    }
+    else
+    {
+        ui->videoViewer->setPixmap(QPixmap::fromImage(image).scaled(ui->videoViewer->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
     }
 }
 

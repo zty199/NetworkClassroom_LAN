@@ -1,5 +1,5 @@
 #include "mainwindow.h"
-#include <QApplication>
+#include <QtSingleApplication>
 
 #include <QTranslator>
 #include <QLocale>
@@ -8,10 +8,19 @@ int main(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);    // 设置应用支持 HiDPI 缩放
 
-    QApplication a(argc, argv);
+    // 限制单实例运行，指定 APP_ID 识别进程
+    QtSingleApplication a(QString("nc_server"), argc, argv);
+    if(a.isRunning())
+    {
+        // 若进程已启动则发送信号并退出
+        a.sendMessage("already_running");
+        return EXIT_SUCCESS;
+    }
 
     a.setQuitOnLastWindowClosed(false);                             // 存在托盘时，关闭窗口程序仍然运行
-    // a.setStyle("fusion");                                           // 设置应用主题
+#ifdef Q_OS_WINDOWS
+    a.setStyle("fusion");                                           // 设置应用主题
+#endif
 
     /*
     QPalette darkPalette;
@@ -46,16 +55,19 @@ int main(int argc, char *argv[])
     a.setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
     */
 
-    QTranslator ts;
-    ts.load("zh_CN.qm", ":/translations/translations");
-
     // 中文环境下加载中文翻译文件，默认为英文
+    QTranslator ts;
     if(QLocale::system().name().split("_").at(0) == "zh")
     {
+        ts.load("zh_CN.qm", ":/translations/translations");
         a.installTranslator(&ts);
     }
 
     MainWindow w;
+    // 禁止接收到信号自动唤起窗口，单独处理信号槽
+    a.setActivationWindow(&w, true);
+    QObject::connect(&a, SIGNAL(messageReceived(QString)), &w, SLOT(on_messageReceived(QString)));
+
     // w.show();    // 启动时先显示启动界面，隐藏主界面
 
     return a.exec();

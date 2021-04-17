@@ -98,6 +98,7 @@ private:
     void initCamera();
 
 private slots:
+    void on_messageReceived(QString);
     void on_exitTriggered(bool checked);
     void on_trayActivated(QSystemTrayIcon::ActivationReason reason);
 

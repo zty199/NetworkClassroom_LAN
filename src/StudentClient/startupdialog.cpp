@@ -29,7 +29,7 @@ void StartUpDialog::mousePressEvent(QMouseEvent *)
 void StartUpDialog::initUI()
 {
     this->setWindowFlag(Qt::WindowContextHelpButtonHint, false);
-    this->setWindowFlag(Qt::WindowMinimizeButtonHint, true);
+
     ui->btn_start->setDisabled(true);
 
     for(int i = 0; i < availableInterfaces.size(); i++)

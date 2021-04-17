@@ -226,6 +226,25 @@ void MainWindow::initCamera()
     }
 }
 
+void MainWindow::on_messageReceived(QString msg)
+{
+    if(msg == "already_running")
+    {
+        if(flag_startup)
+        {
+            this->setWindowState(Qt::WindowActive);
+            this->activateWindow();
+            this->show();
+        }
+        else
+        {
+            m_startup->setWindowState(Qt::WindowActive);
+            m_startup->activateWindow();
+            m_startup->show();
+        }
+    }
+}
+
 void MainWindow::on_exitTriggered(bool checked)
 {
     Q_UNUSED(checked)

@@ -2,4 +2,5 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     StudentClient \
-    TeacherServer
+    TeacherServer \
+    ../qtsingleapplication

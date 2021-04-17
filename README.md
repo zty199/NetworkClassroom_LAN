@@ -75,12 +75,14 @@
 
 * [Qt最小化到托盘、恢复并置顶](https://blog.csdn.net/wayrboy/article/details/79117012)
 
+* [qtSingleApplication使用总结](https://blog.csdn.net/iamsujin/article/details/53257038)
+
 ## Credit
 * [haidragon/Qtliveradio](https://github.com/haidragon/Qtliveradio)
 
 * [sonichy/HTYScreenPen](https://github.com/sonichy/HTYScreenPen)
 
-* [itay-grudev/SingleApplication](https://github.com/itay-grudev/SingleApplication)
+* [qtproject/qt-solutions](https://github.com/qtproject/qt-solutions)
 
 ## Clarification
 This project is my graduation design for undergraduates. Only for study and communication.

@@ -71,6 +71,7 @@ private:
     void initConnections();
 
 private slots:
+    void on_messageReceived(QString msg);
     void on_exitTriggered(bool checked);
     void on_trayActivated(QSystemTrayIcon::ActivationReason reason);
 
