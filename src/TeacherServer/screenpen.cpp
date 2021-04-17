@@ -31,7 +31,7 @@ ScreenPen::ScreenPen(QWidget *parent) :
     connect(new QShortcut(QKeySequence(Qt::Key_Minus), this), SIGNAL(activated()), this, SLOT(reducePenWidth()));
     connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q), this), SIGNAL(activated()), this, SLOT(on_btn_exit_clicked()));
 
-    clear();
+    this->clear();
     this->setFocus();
 }
 
@@ -46,7 +46,7 @@ void ScreenPen::mousePressEvent(QMouseEvent *e)
     endPnt = e->pos();
     if(e->buttons() & Qt::RightButton)
     {
-        clear();
+        this->clear();
     }
 }
 
@@ -118,7 +118,7 @@ void ScreenPen::drawCursor()
         unsetCursor();
         return;
     }
-    setCursor(QCursor(pixmap, 0, pixmap.height()));
+    this->setCursor(QCursor(pixmap, 0, pixmap.height()));
 }
 
 void ScreenPen::draw(QImage &image)
@@ -152,7 +152,7 @@ void ScreenPen::draw(QImage &image)
     default:
         break;
     }
-    update();
+    this->update();
 }
 
 void ScreenPen::clear()
@@ -165,24 +165,32 @@ void ScreenPen::clear()
 
 void ScreenPen::on_btn_brush_clicked()
 {
+    ui->btn_brush->setFocus();
+
     draw_type = BRUSH_DRAW;
     drawCursor();
 }
 
 void ScreenPen::on_btn_line_clicked()
 {
+    ui->btn_line->setFocus();
+
     draw_type = LINE_DRAW;
     drawCursor();
 }
 
 void ScreenPen::on_btn_rect_clicked()
 {
+    ui->btn_rect->setFocus();
+
     draw_type = RECT_DRAW;
     drawCursor();
 }
 
 void ScreenPen::on_btn_ellipse_clicked()
 {
+    ui->btn_ellipse->setFocus();
+
     draw_type = ELLIPSE_DRAW;
     drawCursor();
 }
@@ -199,7 +207,7 @@ void ScreenPen::on_btn_color_clicked()
 
 void ScreenPen::on_btn_whiteboard_clicked()
 {
-    clear();
+    this->clear();
     if(flag_whiteboard)
     {
         bg_color = QColor(0, 0, 0, 1);
@@ -219,6 +227,8 @@ void ScreenPen::on_btn_exit_clicked()
 
 void ScreenPen::clearDrawType()
 {
+    this->setFocus();
+
     draw_type = NONE_DRAW;
     drawCursor();
 }
