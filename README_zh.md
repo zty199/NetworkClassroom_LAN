@@ -57,10 +57,6 @@
 
 * [扯淡的多播参数IP_MULTICAST_LOOP](https://blog.csdn.net/weixin_34014277/article/details/89985878)
 
-* [Qtliveradio](https://github.com/haidragon/Qtliveradio)
-
-* [海天鹰屏幕笔](https://github.com/sonichy/HTYScreenPen)
-
 * [QT多线程的使用](https://www.cnblogs.com/coolcpp/p/qt-thread.html)
 
 * [Qt QRunnable的使用](https://blog.csdn.net/qq_43711348/article/details/103983857)
