@@ -73,7 +73,7 @@ void TextMsgTransceiver::run()
     QString msg = body + "\n";
 
     qint64 res;
-    res = textsend_socket->writeDatagram(msg.toUtf8().data(), msg.size(), groupAddress, text_port);
+    res = textsend_socket->writeDatagram(msg.toUtf8().data(), msg.toUtf8().size(), groupAddress, text_port);
     if(res < 0)
     {
         qDebug() << "text_socket: Connect Msg Send Failed!";
@@ -108,7 +108,7 @@ void TextMsgTransceiver::on_textSend(QString body)
     QString msg = head + "\n" + body + "\n\n";
 
     qint64 res;
-    res = textsend_socket->writeDatagram(msg.toUtf8().data(), msg.size(), groupAddress, text_port);
+    res = textsend_socket->writeDatagram(msg.toUtf8().data(), msg.toUtf8().size(), groupAddress, text_port);
     if(res < 0)
     {
         qDebug() << "text_socket: Text Msg Send Failed!";

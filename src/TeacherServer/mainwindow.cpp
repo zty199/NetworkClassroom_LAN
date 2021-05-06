@@ -518,7 +518,7 @@ void MainWindow::on_btn_screen_clicked()
         // 终止视频传输时发送信号
         video_threadPool->clear();
         video_threadPool->waitForDone();
-        command_socket->writeDatagram(QString("Stop").toUtf8(), QString("Stop").toUtf8().size(), groupAddress, command_port);
+        command_socket->writeDatagram(QString("Stop").toUtf8().data(), QString("Stop").toUtf8().size(), groupAddress, command_port);
 
         ui->videoViewer->clear();
 
