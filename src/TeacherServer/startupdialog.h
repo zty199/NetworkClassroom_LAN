@@ -13,7 +13,7 @@ class StartUpDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit StartUpDialog(QWidget *parent = nullptr);
+    StartUpDialog(QWidget *mainWindow, QWidget *parent = nullptr);
     ~StartUpDialog() override;
 
 protected:
@@ -27,6 +27,8 @@ private:
     QHostAddress m_address;
     QString m_name;
     bool flag_multicast;
+
+    QWidget *mainWindow;
 
     void initUI();
     void initConnections();

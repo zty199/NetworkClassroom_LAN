@@ -1,11 +1,13 @@
 #include "startupdialog.h"
 #include "ui_startupdialog.h"
 
-StartUpDialog::StartUpDialog(QWidget *parent) :
+StartUpDialog::StartUpDialog(QWidget *mainWindow,
+                             QWidget *parent) :
     QDialog(parent),
     ui(new Ui::StartUpDialog),
     availableInterfaces(QNetworkInterface::allInterfaces()),
-    flag_connect(false)
+    flag_connect(false),
+    mainWindow(mainWindow)
 {
     ui->setupUi(this);
 
@@ -29,6 +31,7 @@ void StartUpDialog::mousePressEvent(QMouseEvent *)
 void StartUpDialog::initUI()
 {
     this->setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+    this->setWindowFlag(Qt::WindowMinimizeButtonHint, true);
 
     ui->btn_start->setDisabled(true);
 
@@ -44,7 +47,7 @@ void StartUpDialog::initUI()
 
 void StartUpDialog::initConnections()
 {
-    connect(this->parent(), SIGNAL(teacherConnected()), this, SLOT(on_teacherConnected()));
+    connect(mainWindow, SIGNAL(teacherConnected()), this, SLOT(on_teacherConnected()));
 }
 
 void StartUpDialog::on_cb_network_currentIndexChanged(int index)

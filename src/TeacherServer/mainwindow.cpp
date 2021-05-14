@@ -129,6 +129,7 @@ void MainWindow::initUI()
     // 初始化鼠标标记
     m_cursor->setWindowFlag(Qt::FramelessWindowHint, true);
     m_cursor->setWindowFlag(Qt::WindowStaysOnTopHint, true);
+    m_cursor->setWindowFlag(Qt::Tool, true);    // 鼠标标记不显示在任务栏中
     m_cursor->resize(5, 5);
     m_cursor->setAutoFillBackground(true);
     m_cursor->setStyleSheet("background-color: rgb(255, 255, 255);");
@@ -518,7 +519,7 @@ void MainWindow::on_btn_screen_clicked()
         // 终止视频传输时发送信号
         video_threadPool->clear();
         video_threadPool->waitForDone();
-        command_socket->writeDatagram(QString("Stop").toUtf8(), QString("Stop").toUtf8().size(), groupAddress, command_port);
+        command_socket->writeDatagram(QString("Stop").toUtf8().data(), QString("Stop").toUtf8().size(), groupAddress, command_port);
 
         ui->videoViewer->clear();
 
@@ -750,7 +751,7 @@ void MainWindow::on_btn_fileTrans_clicked()
 
     // 打开文件
     QFile file(fileName);
-    if(!file.open(QIODevice::ReadOnly))
+    if(!file.open(QIODevice::ReadOnly) || !QFileInfo(file).isReadable())
     {
         QMessageBox::critical(this, tr("Critical"), tr("File Open Failed!"), QMessageBox::Ok);
         return;
@@ -775,7 +776,7 @@ void MainWindow::on_btn_fileTrans_clicked()
         file_threadPool->start(new FileSender(address, fileName));
 
         count++;
-        m_progress->setValue(static_cast<int>(qreal(count) / listSize));
+        m_progress->setValue(static_cast<int>(qreal(count) / listSize * 100));
     }
 
     // 传输完成后隐藏进度条
@@ -788,17 +789,24 @@ void MainWindow::on_btn_signIn_clicked()
     QString fileName = "SignIn_" + QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
 
     // 保存文件对话框
-    fileName = QFileDialog::getSaveFileName(this,
+    QString tmp = QFileDialog::getSaveFileName(this,
                                             tr("Export Sign-In Sheet"),
                                             QDir::homePath() + "/Desktop/" + fileName,
                                             tr("Text Files (*.txt)"));
-    if(fileName.isEmpty())
+    // 若文件路径为空（取消导出）
+    if(tmp.isEmpty())
     {
         return;
     }
 
+    // 若上层文件夹不可写入
+    if(!QFileInfo(QFileInfo(tmp).absolutePath()).isWritable())
+    {
+        tmp = QDir::homePath() + "/Desktop/" + fileName;
+    }
+
     // 写入文件
-    QFile file(fileName);
+    QFile file(tmp);
     if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
         QMessageBox::critical(this, tr("Critical"), tr("File Export Failed!"), QMessageBox::Ok);
@@ -806,7 +814,7 @@ void MainWindow::on_btn_signIn_clicked()
     }
 
     QTextStream stream(&file);
-    QString newLine = "Index\tIP\t\tName\n";
+    QString newLine = "Index\tIP Address\tName\n";
     stream << newLine;
 
     int index = 1;

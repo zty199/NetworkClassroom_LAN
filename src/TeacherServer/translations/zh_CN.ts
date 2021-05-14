@@ -184,48 +184,48 @@
         <translation>退出</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="724"/>
+        <location filename="../mainwindow.cpp" line="744"/>
         <source>Select File to Transfer</source>
         <translation>选择要传输的文件</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="726"/>
+        <location filename="../mainwindow.cpp" line="746"/>
         <source>All Files (*.*)</source>
         <translation>所有文件 (*.*)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="736"/>
-        <location filename="../mainwindow.cpp" line="785"/>
+        <location filename="../mainwindow.cpp" line="756"/>
+        <location filename="../mainwindow.cpp" line="812"/>
         <source>Critical</source>
         <translation>错误</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="736"/>
+        <location filename="../mainwindow.cpp" line="756"/>
         <source>File Open Failed!</source>
         <translation>文件打开失败！</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="773"/>
+        <location filename="../mainwindow.cpp" line="793"/>
         <source>Export Sign-In Sheet</source>
         <translation>导出签到表</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="775"/>
+        <location filename="../mainwindow.cpp" line="795"/>
         <source>Text Files (*.txt)</source>
         <translation>文本文件 (*.txt)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="785"/>
+        <location filename="../mainwindow.cpp" line="812"/>
         <source>File Export Failed!</source>
         <translation>文件导出失败！</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="805"/>
+        <location filename="../mainwindow.cpp" line="832"/>
         <source>Information</source>
         <translation>提示</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="806"/>
+        <location filename="../mainwindow.cpp" line="833"/>
         <source>File saved. Show in Explorer?</source>
         <translation>文件已保存。是否在文件管理器中显示？</translation>
     </message>
@@ -297,7 +297,7 @@
     </message>
     <message>
         <location filename="../startupdialog.ui" line="54"/>
-        <location filename="../startupdialog.cpp" line="106"/>
+        <location filename="../startupdialog.cpp" line="108"/>
         <source>Welcome!</source>
         <translation>欢迎！</translation>
     </message>
@@ -328,8 +328,8 @@
     </message>
     <message>
         <location filename="../startupdialog.ui" line="134"/>
-        <location filename="../startupdialog.cpp" line="107"/>
-        <location filename="../startupdialog.cpp" line="163"/>
+        <location filename="../startupdialog.cpp" line="109"/>
+        <location filename="../startupdialog.cpp" line="165"/>
         <source>Waiting for students...</source>
         <translation>等待学生...</translation>
     </message>
@@ -354,17 +354,17 @@
         <translation>启动</translation>
     </message>
     <message>
-        <location filename="../startupdialog.cpp" line="95"/>
+        <location filename="../startupdialog.cpp" line="97"/>
         <source>Welcome, </source>
         <translation>欢迎， </translation>
     </message>
     <message>
-        <location filename="../startupdialog.cpp" line="95"/>
+        <location filename="../startupdialog.cpp" line="97"/>
         <source>!</source>
         <translation>！</translation>
     </message>
     <message>
-        <location filename="../startupdialog.cpp" line="159"/>
+        <location filename="../startupdialog.cpp" line="161"/>
         <source>%1 student(s) connected...</source>
         <translation>%1 名学生已连接...</translation>
     </message>

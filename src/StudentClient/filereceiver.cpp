@@ -14,8 +14,6 @@ FileReceiver::~FileReceiver()
 {
     file_server->close();
     delete file_server;
-
-    delete m_progress;
 }
 
 void FileReceiver::run()
@@ -26,8 +24,7 @@ void FileReceiver::run()
     file_server->listen(m_address, file_port);
     connect(file_server, SIGNAL(newConnection()), this, SLOT(on_newConnection()), Qt::DirectConnection);
 
-    m_progress = new FileRecvProgress;
-    m_progress->hide();
+    emit fileReceived(false);
 
     exec();
 }
@@ -69,7 +66,7 @@ void FileReceiver::on_fileReadyRead()
                                                    QDir::homePath() + "/Desktop/" + fileName,
                                                    "*." + suffix);
         // 若文件路径为空 或 所选路径无法写入
-        if(tmp.isEmpty() || !QFileInfo(QFileInfo(tmp).absolutePath()).permissions().testFlag(QFile::WriteUser))
+        if(tmp.isEmpty() || !QFileInfo(QFileInfo(tmp).absolutePath()).isWritable())
         {
             tmp = QDir::homePath() + "/Desktop/" + fileName;
         }
@@ -81,7 +78,7 @@ void FileReceiver::on_fileReadyRead()
             return;
         }
 
-        m_progress->show();
+        emit fileReceived(true);
 
         // 处理粘包部分
         if(byteArray.size() > PACKET_MAX_SIZE)
@@ -96,12 +93,12 @@ void FileReceiver::on_fileReadyRead()
             else
             {
                 receivedBytes += res;
-                m_progress->setValue(static_cast<int>(qreal(receivedBytes) / fileSize));
+                emit fileReceivedProgress(static_cast<int>(qreal(receivedBytes) / fileSize * 100));
             }
 
             if(receivedBytes == fileSize)
             {
-                m_progress->setValue(100);
+                emit fileReceivedProgress(100);
 
                 file->close();
                 // qDebug() << QFileInfo(*file).size();
@@ -110,7 +107,7 @@ void FileReceiver::on_fileReadyRead()
 
                 file_socket->disconnectFromHost();
 
-                m_progress->hide();
+                emit fileReceived(false);
                 receivedBytes = 0;
             }
         }
@@ -121,17 +118,19 @@ void FileReceiver::on_fileReadyRead()
     {
         qDebug() << "file_receiver: File Write Failed!";
         file->close();
+        emit fileReceivedProgress(0);
+        emit fileReceived(false);
         return;
     }
     else
     {
         receivedBytes += res;
-        m_progress->setValue(static_cast<int>(qreal(receivedBytes) / fileSize));
+        emit fileReceivedProgress(static_cast<int>(qreal(receivedBytes) / fileSize * 100));
     }
 
     if(receivedBytes == fileSize)
     {
-        m_progress->setValue(100);
+        emit fileReceivedProgress(100);
 
         file->close();
         // qDebug() << QFileInfo(*file).size();
@@ -140,7 +139,7 @@ void FileReceiver::on_fileReadyRead()
 
         file_socket->disconnectFromHost();
 
-        m_progress->hide();
+        emit fileReceived(false);
         receivedBytes = 0;
     }
 }

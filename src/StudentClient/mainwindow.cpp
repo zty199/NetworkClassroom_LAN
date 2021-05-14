@@ -24,6 +24,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_startup(new StartUpDialog(this)),
     command_timer(new QTimer(this)),
     flag_startup(false),
+    m_progress(new FileRecvProgress),
     m_textchat(new TextChatDialog(this)),
     flag_text(false)
 {
@@ -474,6 +475,8 @@ void MainWindow::on_startUp()
     audio_receiver->start();
 
     file_receiver = new FileReceiver(m_address);
+    connect(file_receiver, SIGNAL(fileReceivedProgress(int)), this, SLOT(on_fileReceivedProgress(int)));
+    connect(file_receiver, SIGNAL(fileReceived(bool)), this, SLOT(on_fileReceived(bool)));
     file_receiver->start();
 
     text_transceiver = new TextMsgTransceiver(m_interface, m_address, m_name);
@@ -536,6 +539,23 @@ void MainWindow::on_commandReadyRead()
             video_receiver->start();
             return;
         }
+    }
+}
+
+void MainWindow::on_fileReceivedProgress(int value)
+{
+    m_progress->setValue(value);
+}
+
+void MainWindow::on_fileReceived(bool flag)
+{
+    if(flag)
+    {
+        m_progress->show();
+    }
+    else
+    {
+        m_progress->hide();
     }
 }
 

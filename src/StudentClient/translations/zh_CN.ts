@@ -4,17 +4,17 @@
 <context>
     <name>FileReceiver</name>
     <message>
-        <location filename="../filereceiver.cpp" line="68"/>
+        <location filename="../filereceiver.cpp" line="65"/>
         <source>Save As</source>
         <translation>另存为</translation>
     </message>
     <message>
-        <location filename="../filereceiver.cpp" line="80"/>
+        <location filename="../filereceiver.cpp" line="77"/>
         <source>Critical</source>
         <translation>错误</translation>
     </message>
     <message>
-        <location filename="../filereceiver.cpp" line="80"/>
+        <location filename="../filereceiver.cpp" line="77"/>
         <source>File Save Failed!</source>
         <translation>文件保存失败！</translation>
     </message>
@@ -100,7 +100,7 @@
         <translation>退出</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="390"/>
+        <location filename="../mainwindow.cpp" line="410"/>
         <source>Volume: </source>
         <translation>音量： </translation>
     </message>
@@ -114,7 +114,7 @@
     </message>
     <message>
         <location filename="../startupdialog.ui" line="48"/>
-        <location filename="../startupdialog.cpp" line="101"/>
+        <location filename="../startupdialog.cpp" line="104"/>
         <source>Welcome!</source>
         <translation>欢迎！</translation>
     </message>
@@ -145,7 +145,7 @@
     </message>
     <message>
         <location filename="../startupdialog.ui" line="122"/>
-        <location filename="../startupdialog.cpp" line="102"/>
+        <location filename="../startupdialog.cpp" line="105"/>
         <source>Waiting for teacher...</source>
         <translation>等待教师连接...</translation>
     </message>
@@ -170,17 +170,17 @@
         <translation>启动</translation>
     </message>
     <message>
-        <location filename="../startupdialog.cpp" line="90"/>
+        <location filename="../startupdialog.cpp" line="93"/>
         <source>Welcome, </source>
         <translation>欢迎， </translation>
     </message>
     <message>
-        <location filename="../startupdialog.cpp" line="90"/>
+        <location filename="../startupdialog.cpp" line="93"/>
         <source>!</source>
         <translation>！</translation>
     </message>
     <message>
-        <location filename="../startupdialog.cpp" line="152"/>
+        <location filename="../startupdialog.cpp" line="155"/>
         <source>Teacher Connected!</source>
         <translation>教师已连接！</translation>
     </message>

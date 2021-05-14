@@ -1,9 +1,11 @@
 #include "textchatdialog.h"
 #include "ui_textchatdialog.h"
 
-TextChatDialog::TextChatDialog(QWidget *parent) :
+TextChatDialog::TextChatDialog(QWidget *mainWindow,
+                               QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::TextChatDialog)
+    ui(new Ui::TextChatDialog),
+    mainWindow(mainWindow)
 {
     ui->setupUi(this);
 
@@ -25,7 +27,7 @@ void TextChatDialog::initUI()
 
 void TextChatDialog::initConnections()
 {
-    connect(this->parent(), SIGNAL(textAppend(QString)), this, SLOT(on_textAppend(QString)));
+    connect(mainWindow, SIGNAL(textAppend(QString)), this, SLOT(on_textAppend(QString)));
 }
 
 void TextChatDialog::on_pushButton_clicked()

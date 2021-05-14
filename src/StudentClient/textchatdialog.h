@@ -12,11 +12,13 @@ class TextChatDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit TextChatDialog(QWidget *parent = nullptr);
+    TextChatDialog(QWidget *mainWindow, QWidget *parent = nullptr);
     ~TextChatDialog();
 
 private:
     Ui::TextChatDialog *ui;
+
+    QWidget *mainWindow;
 
     void initUI();
     void initConnections();

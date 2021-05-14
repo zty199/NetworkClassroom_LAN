@@ -9,8 +9,6 @@
 #include "util.h"
 #include "config.h"
 
-#include "filerecvprogress.h"
-
 class FileReceiver : public QThread
 {
     Q_OBJECT
@@ -23,8 +21,6 @@ protected:
     void run() override;
 
 private:
-    FileRecvProgress *m_progress;
-
     QTcpServer *file_server;
     QTcpSocket *file_socket;
     QHostAddress m_address;
@@ -40,7 +36,8 @@ private slots:
     void displayError(QAbstractSocket::SocketError);
 
 signals:
-    void fileReceived(QByteArray, QString);
+    void fileReceived(bool flag);
+    void fileReceivedProgress(int value);
 
 };
 

@@ -21,7 +21,7 @@ void FileSender::run()
 
     file_socket = new QTcpSocket;
     file_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
-    // file_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024 * 8);
+    file_socket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024 * 8);
 
     // 连接客户端
     file_socket->connectToHost(address, file_port);

@@ -3,11 +3,13 @@
 
 #include <QNetworkAddressEntry>
 
-StartUpDialog::StartUpDialog(QWidget *parent) :
+StartUpDialog::StartUpDialog(QWidget *mainWindow,
+                             QWidget *parent) :
     QDialog(parent),
     ui(new Ui::StartUpDialog),
     availableInterfaces(QNetworkInterface::allInterfaces()),
-    flag_multicast(false)
+    flag_multicast(false),
+    mainWindow(mainWindow)
 {
     ui->setupUi(this);
 
@@ -32,6 +34,7 @@ void StartUpDialog::mousePressEvent(QMouseEvent *)
 void StartUpDialog::initUI()
 {
     this->setWindowFlag(Qt::WindowContextHelpButtonHint, false);    // 禁用对话框帮助按钮
+    this->setWindowFlag(Qt::WindowMinMaxButtonsHint, true);         // 启用最小化按钮
 
     ui->btn_start->setDisabled(true);
 
@@ -47,7 +50,7 @@ void StartUpDialog::initUI()
 
 void StartUpDialog::initConnections()
 {
-    connect(this->parent(), SIGNAL(studentConnected(int)), this, SLOT(on_studentConnected(int)));
+    connect(mainWindow, SIGNAL(studentConnected(int)), this, SLOT(on_studentConnected(int)));
 }
 
 void StartUpDialog::on_cb_network_currentIndexChanged(int index)

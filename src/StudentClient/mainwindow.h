@@ -14,6 +14,7 @@
 #include "videoframereceiver.h"
 #include "audiopackreceiver.h"
 #include "filereceiver.h"
+#include "filerecvprogress.h"
 #include "textmsgtransceiver.h"
 
 namespace Ui {
@@ -61,6 +62,8 @@ private:
     QHostAddress teacher_address;
     bool flag_startup;
 
+    FileRecvProgress *m_progress;
+
     TextChatDialog *m_textchat;
     bool flag_text;
 
@@ -88,6 +91,9 @@ private slots:
     void on_startUp();
     void on_commandTimeOut();
     void on_commandReadyRead();
+
+    void on_fileReceivedProgress(int value);
+    void on_fileReceived(bool flag);
 
     void on_textAppend(QString);
     void on_textSend(QString);
