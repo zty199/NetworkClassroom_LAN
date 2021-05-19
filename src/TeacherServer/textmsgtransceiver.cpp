@@ -69,7 +69,7 @@ void TextMsgTransceiver::run()
     connect(textrecv_socket, SIGNAL(readyRead()), this, SLOT(on_textReadyRead()), Qt::DirectConnection);
 
     QString datetime = QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss");
-    QString body = name + "[" + address.toString() + "] Connected\t" + datetime + "\n";     // 此处 Connected 翻译会出现发送数据大小异常导致接收不完整
+    QString body = name + "[" + address.toString() + tr("] Connected\t") + datetime + "\n";     // 此处 Connected 翻译会出现发送数据大小异常导致接收不完整
     QString msg = body + "\n";
 
     qint64 res;

@@ -213,4 +213,12 @@
         <translation></translation>
     </message>
 </context>
+<context>
+    <name>TextMsgTransceiver</name>
+    <message>
+        <location filename="../textmsgtransceiver.cpp" line="59"/>
+        <source>] Connected	</source>
+        <translation>] 已连接	</translation>
+    </message>
+</context>
 </TS>
